@@ -1,0 +1,43 @@
+html {
+
+}
+body {
+    background-color: #630106;
+    font-family: 'CircularSpotifyText', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.box {
+    padding-left: 95px;
+    padding-top: 95px;
+    font-size: 80px;
+    color: white;
+    width: 60vw;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    opacity: 0.7;
+}
+
+@media (max-width: 1200px) {
+    .box {
+        font-size: 40px;
+        width: 85vw;
+    }
+}
+
+
+.line {
+    margin-bottom: 35px;
+
+}
+
+@font-face {
+    font-family: 'CircularSpotifyText';
+    src: url('fonts/CircularSpotifyText-Black.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
