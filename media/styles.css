@@ -1,8 +1,163 @@
 html {
 
 }
+@font-face {
+    font-family: 'CircularSpotifyText';
+    src: url('fonts/CircularSpotifyText-Black.otf') format('opentype');
+    font-weight: 900;
+}
+@font-face {
+    font-family: 'CircularSpotifyText';
+    src: url('fonts/CircularSpotifyText-Medium.otf') format('opentype');
+    font-weight: 500;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 body {
-    background-color: #630106;
+    margin: 0;
+    background: #121212;
+    font-family: 'CircularSpotifyText', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 0;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 350px;
+    color: #fff;
+    text-align: left;
+    padding: 0 35px;
+    box-sizing: border-box;
+}
+
+.login-title {
+    font-weight: 500;
+    font-size: 32px;
+    margin: 0 0 35px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.logo-bold {
+    font-weight: 900;
+}
+
+.login-separator {
+    height: 1px;
+    background: #282828;
+    border-radius: 2px;
+    margin-bottom: 24px;
+    width: 100%;
+    transition: width 0.3s ease, margin 0.3s ease;
+}
+
+@media (min-width: 851px) {
+    .login-separator {
+        width: calc(100% + 200px);
+        max-width: 550px;
+        margin-left: -100px;
+    }
+}
+
+@media (max-width: 850px) {
+    .login-container {
+        max-width: 100%;
+        padding: 0 35px;
+    }
+    .login-separator {
+        width: 100%;
+        margin-left: 0;
+        max-width: none;
+    }
+}
+
+.field-group {
+    margin-bottom: 24px;
+    width: 100%;
+}
+
+.field-label {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 8px;
+    display: block;
+    text-transform: uppercase;
+    color: #fff;
+    text-align: left;
+}
+
+.field-input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 16px;
+    font-family: 'CircularSpotifyText', sans-serif;
+    font-weight: 500;
+    color: #fff;
+    background: #121212;
+    border: 1px solid #555;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    height: auto;
+    line-height: 1.2;
+}
+.field-input::placeholder {
+    font-family: 'CircularSpotifyText', sans-serif;
+    font-weight: 500;
+    color: #b3b3b3;
+    opacity: 1;
+}
+.field-input:focus {
+    outline: none;
+    border-color: #fff;
+    box-shadow: 0 0 0 1px #fff;
+}
+
+.field-input:hover {
+    border-color: #fff;
+}
+
+.field-input:not(:focus) {
+    border-width: 1px;
+}
+
+.btn-continue {
+    width: 100%;
+    padding: 16px 0;
+    background: #30d762;
+    border: none;
+    border-radius: 24px;
+    font-family: 'CircularSpotifyText', sans-serif;
+    font-weight: 500;
+    font-size: 18px;
+    color: #000;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+.btn-continue:hover {
+    background: #30d762;
+    transform: scale(1.05);
+}
+.btn-continue:active {
+    transform: scale(0.95);
+}
+.link-hint {
+    color: #30d762;
+    text-decoration: underline;
+}
+
+.link-hint:hover {
+    color: #ffffff;
+}
+
+.lyricsBody {
+    background-color: #083658;
     font-family: 'CircularSpotifyText', sans-serif;
     margin: 0;
     padding: 0;
@@ -19,7 +174,6 @@ body {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    opacity: 0.7;
 }
 
 @media (max-width: 1200px) {
@@ -32,7 +186,7 @@ body {
 
 .line {
     margin-bottom: 35px;
-
+    opacity: 0.7;
 }
 
 @font-face {

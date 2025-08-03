@@ -12,7 +12,7 @@ export async function activate(context: vscode.ExtensionContext) {
             }
         );
 
-        const htmlUri = vscode.Uri.joinPath(context.extensionUri, 'media', 'index.html');
+        const htmlUri = vscode.Uri.joinPath(context.extensionUri, 'media', 'logInTemplate.html');
         const bytes = await vscode.workspace.fs.readFile(htmlUri);
 
         // Используем TextDecoder, чтобы получить строку из Uint8Array
