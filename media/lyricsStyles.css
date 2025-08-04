@@ -1,0 +1,48 @@
+@font-face {
+    font-family: 'CircularSpotifyText';
+    src: url('fonts/CircularSpotifyText-Black.otf') format('opentype');
+    font-weight: 900;
+}
+@font-face {
+    font-family: 'CircularSpotifyText';
+    src: url('fonts/CircularSpotifyText-Bold.otf') format('opentype');
+    font-weight: 700;
+}
+@font-face {
+    font-family: 'CircularSpotifyText';
+    src: url('fonts/CircularSpotifyText-Medium.otf') format('opentype');
+    font-weight: 500;
+}
+
+.lyricsBody {
+    background-color: #083658;
+    font-family: 'CircularSpotifyText', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.box {
+    padding-left: 80px;
+    padding-top: 80px;
+    font-size: 80px;
+    color: white;
+    width: 60vw;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+@media (max-width: 1200px) {
+    .box {
+        font-size: 50px;
+        width: 85vw;
+    }
+}
+
+.line {
+    font-weight: 700;
+    margin-bottom: 35px;
+    opacity: 0.7;
+}

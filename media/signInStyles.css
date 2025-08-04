@@ -1,6 +1,4 @@
-html {
 
-}
 @font-face {
     font-family: 'CircularSpotifyText';
     src: url('fonts/CircularSpotifyText-Black.otf') format('opentype');
@@ -107,12 +105,14 @@ body {
     height: auto;
     line-height: 1.2;
 }
+
 .field-input::placeholder {
     font-family: 'CircularSpotifyText', sans-serif;
     font-weight: 500;
     color: #b3b3b3;
     opacity: 1;
 }
+
 .field-input:focus {
     outline: none;
     border-color: #fff;
@@ -140,10 +140,12 @@ body {
     cursor: pointer;
     transition: background 0.2s ease, transform 0.1s ease;
 }
+
 .btn-continue:hover {
     background: #30d762;
     transform: scale(1.05);
 }
+
 .btn-continue:active {
     transform: scale(0.95);
 }
@@ -163,37 +165,3 @@ body {
 .link-hint:hover {
     color: #ffffff;
 }
-
-.lyricsBody {
-    background-color: #083658;
-    font-family: 'CircularSpotifyText', sans-serif;
-    margin: 0;
-    padding: 0;
-}
-
-.box {
-    padding-left: 95px;
-    padding-top: 95px;
-    font-size: 80px;
-    color: white;
-    width: 60vw;
-    box-sizing: border-box;
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-}
-
-@media (max-width: 1200px) {
-    .box {
-        font-size: 40px;
-        width: 85vw;
-    }
-}
-
-
-.line {
-    margin-bottom: 35px;
-    opacity: 0.7;
-}
-
