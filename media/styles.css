@@ -29,7 +29,7 @@ body {
 
 .login-container {
     width: 100%;
-    max-width: 350px;
+    max-width: 410px;
     color: #fff;
     text-align: left;
     padding: 0 35px;
@@ -147,6 +147,14 @@ body {
 .btn-continue:active {
     transform: scale(0.95);
 }
+
+.hint {
+    font-size: 13px;
+    color: #b3b3b3;
+    margin-top: 8px;
+    font-family: 'CircularSpotifyText', sans-serif;
+}
+
 .link-hint {
     color: #30d762;
     text-decoration: underline;
@@ -189,9 +197,3 @@ body {
     opacity: 0.7;
 }
 
-@font-face {
-    font-family: 'CircularSpotifyText';
-    src: url('fonts/CircularSpotifyText-Black.otf') format('opentype');
-    font-weight: normal;
-    font-style: normal;
-}

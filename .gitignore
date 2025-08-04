@@ -1,7 +1,4 @@
-.vscode/
-.vscode-test-web/
 out/
-dist/
 node_modules/
 dist/**/test/
 *.map

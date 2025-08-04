@@ -10,7 +10,7 @@
     "Other"
   ],
   "activationEvents": [],
-  "browser": "./dist/web/extension.js",
+  "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
@@ -20,31 +20,22 @@
     ]
   },
   "scripts": {
-    "test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/index.js",
-    "pretest": "npm run compile-web",
-    "vscode:prepublish": "npm run package-web",
-    "compile-web": "webpack",
-    "watch-web": "webpack --watch",
-    "package-web": "webpack --mode production --devtool hidden-source-map",
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. ."
+    "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/assert": "^1.5.11",
-    "@types/mocha": "^10.0.10",
-    "@types/node": "^24.1.0",
     "@types/vscode": "^1.102.0",
-    "@types/webpack-env": "^1.18.8",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
-    "@vscode/test-web": "^0.0.71",
-    "assert": "^2.1.0",
     "eslint": "^9.25.1",
-    "mocha": "^11.1.0",
-    "process": "^0.11.10",
-    "ts-loader": "^9.5.2",
     "typescript": "^5.8.3",
-    "webpack": "^5.99.7",
-    "webpack-cli": "^6.0.1"
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2"
   }
 }
