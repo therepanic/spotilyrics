@@ -1,4 +1,5 @@
 import {SpotifyGetTokenResponse} from "./response/SpotifyGetTokenResponse";
+import {SpotifyRefreshTokenResponse} from "./response/SpotifyRefreshTokenResponse";
 
 export class SpotifyWebApi {
 
@@ -32,6 +33,23 @@ export class SpotifyWebApi {
         });
 
         return await response.json() as SpotifyGetTokenResponse;
+    }
+
+    static async refreshToken(refreshToken: string, clientId: string) {
+        const params = new URLSearchParams();
+        params.append('grant_type', 'refresh_token');
+        params.append('refresh_token', refreshToken)
+        params.append('client_id', clientId);
+
+        const response = await fetch('https://accounts.spotify.com/api/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: params.toString(),
+        });
+
+        return await response.json() as SpotifyRefreshTokenResponse;
     }
 
 }
