@@ -17,7 +17,7 @@ export class SpotifyWebApi {
 
     static async getToken(clientId: string, codeVerifier: string, redirectUri: string, code: string, grantType: string) {
         const params = new URLSearchParams();
-        params.append('grant_type', 'authorization_code');
+        params.append('grant_type', grantType);
         params.append('code', code);
         params.append('redirect_uri', redirectUri);
         params.append('code_verifier', codeVerifier);
