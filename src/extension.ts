@@ -8,11 +8,11 @@ import {SpotifyPreAuthState} from "./SpotifyPreAuthState";
 import {SpotifyAuthState} from "./SpotifyAuthState";
 import {clearInterval, setInterval} from "node:timers";
 
-let preAuthState: SpotifyPreAuthState | null = null;
-let authState: SpotifyAuthState | null = null;
+let preAuthState: SpotifyPreAuthState | null;
+let authState: SpotifyAuthState | null;
 
-let server: http.Server | undefined;
-let pollingInterval: NodeJS.Timeout | undefined;
+let server: http.Server | null;
+let pollingInterval: NodeJS.Timeout | null;
 
 export async function activate(context: vscode.ExtensionContext) {
     const disposable = vscode.commands.registerCommand('spotilyrics.showLyrics', async () => {
@@ -60,11 +60,11 @@ export async function activate(context: vscode.ExtensionContext) {
 export async function deactivate() {
     if (pollingInterval) {
         clearInterval(pollingInterval);
-        pollingInterval = undefined;
+        pollingInterval = null;
     }
     if (server) {
         server.close();
-        server = undefined;
+        server = null;
     }
 }
 
@@ -113,8 +113,6 @@ async function createServer(context: vscode.ExtensionContext, panel: WebviewPane
                 context.globalState.update("accessToken", response.access_token);
                 context.globalState.update("refreshToken", response.refresh_token);
                 context.globalState.update("expiresIn", expiresIn);
-
-                vscode.window.showInformationMessage(`refreshToken ${response.refresh_token} clientId: ${preAuthState.clientId}`);
 
                 authState = new SpotifyAuthState(preAuthState.clientId, response.access_token, response.refresh_token, expiresIn);
                 preAuthState = null;
@@ -167,19 +165,23 @@ async function pollSpotifyStat(context: vscode.ExtensionContext) {
 }
 
 async function authorize(context: vscode.ExtensionContext) {
-    if (authState == null) {
-        const clientId = context.globalState.get<string>("clientId");
-        const accessToken = context.globalState.get<string>("accessToken");
-        const refreshToken = context.globalState.get<string>("refreshToken");
-        const expiresInStr = context.globalState.get<string>("expiresIn");
+    const clientId = context.globalState.get<string>("clientId");
+    const accessToken = context.globalState.get<string>("accessToken");
+    const refreshToken = context.globalState.get<string>("refreshToken");
+    const expiresInStr = context.globalState.get<string>("expiresIn");
 
-        if (clientId && accessToken && refreshToken && expiresInStr) {
-            authState = new SpotifyAuthState(
-                clientId,
-                accessToken,
-                refreshToken,
-                Number(expiresInStr)
-            );
+    if (clientId && accessToken && refreshToken && expiresInStr) {
+        authState = new SpotifyAuthState(
+            clientId,
+            accessToken,
+            refreshToken,
+            Number(expiresInStr)
+        );
+
+        if (!pollingInterval) {
+            pollingInterval = setInterval(() => {
+                pollSpotifyStat(context);
+            }, 1000);
         }
     }
 }
