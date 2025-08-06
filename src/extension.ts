@@ -27,7 +27,9 @@ export async function activate(context: vscode.ExtensionContext) {
         );
 
         await authorize(context);
-        await createServer(context, panel);
+        if (authState == null) {
+            await createServer(context, panel);
+        }
         await printFrame(context, panel);
 
         panel.webview.onDidReceiveMessage(async message => {
@@ -130,6 +132,12 @@ async function createServer(context: vscode.ExtensionContext, panel: WebviewPane
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'text/plain');
                 res.end('Authorization code received! You can close this page.');
+
+                if (server) {
+                    server.close();
+                    server = null;
+                }
+
             } else {
                 res.statusCode = 400;
                 res.setHeader('Content-Type', 'text/plain');
