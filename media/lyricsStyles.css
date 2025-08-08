@@ -15,10 +15,22 @@
 }
 
 .lyricsBody {
-    background-color: #083658;
+    background-color: #333333;
     font-family: 'CircularSpotifyText', sans-serif;
     margin: 0;
     padding: 0;
+}
+
+.placeholder {
+    font-weight: 900;
+    font-size: 75px;
+    color: #ffffff;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
 }
 
 .box {
