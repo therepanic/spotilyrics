@@ -1,3 +1,4 @@
+import { SpotifyGetCurrentlyPlayingResponse } from "./response/SpotifyGetCurrentlyPlayingResponse";
 import {SpotifyGetTokenResponse} from "./response/SpotifyGetTokenResponse";
 import {SpotifyRefreshTokenResponse} from "./response/SpotifyRefreshTokenResponse";
 
@@ -50,6 +51,18 @@ export class SpotifyWebApi {
         });
 
         return await response.json() as SpotifyRefreshTokenResponse;
+    }
+
+    static async getCurrentlyPlaying(accessToken: string) {
+        const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+
+        return await response.json() as SpotifyGetCurrentlyPlayingResponse;
     }
 
 }

@@ -1,0 +1,8 @@
+export interface LRCLibSearchResponse {
+    name: string,
+    trackName: string,
+    artistName: string,
+    albumName: string,
+    plainLyrics?: string,
+    syncedLyrics?: string
+}

@@ -7,9 +7,13 @@ import {IncomingMessage} from "node:http";
 import {SpotifyPreAuthState} from "./SpotifyPreAuthState";
 import {SpotifyAuthState} from "./SpotifyAuthState";
 import {clearInterval, setInterval} from "node:timers";
+import { SpotifyCurrentPlayingState } from './SpotifyCurrentPlayingState';
+import { LRCLibSearchResponse } from './api/response/LRCLibSearchResponse';
+import { LRCLibApi } from './api/LRCLibApi';
 
 let preAuthState: SpotifyPreAuthState | null;
 let authState: SpotifyAuthState | null;
+let currentPlayingState: SpotifyCurrentPlayingState | undefined;
 
 let server: http.Server | null;
 let pollingInterval: NodeJS.Timeout | null;
@@ -156,7 +160,7 @@ async function createServer(context: vscode.ExtensionContext, panel: WebviewPane
 async function pollSpotifyStat(context: vscode.ExtensionContext) {
     if (authState != null) {
         if (authState.expiresIn <= Date.now()) {
-            const response= await SpotifyWebApi.refreshToken(authState.refreshToken, authState.clientId);
+            const response = await SpotifyWebApi.refreshToken(authState.refreshToken, authState.clientId);
 
             const expiresIn = Date.now() + response.expires_in * 1000;
 
@@ -168,8 +172,31 @@ async function pollSpotifyStat(context: vscode.ExtensionContext) {
             authState.accessToken = response.access_token;
             authState.expiresIn = expiresIn;
         }
+        const currentlyPlayingResponse = await SpotifyWebApi.getCurrentlyPlaying(authState.accessToken);
+        const trackName = currentlyPlayingResponse.item.name;
+        const artistNames: string[] = [];
+        for (const artist of currentlyPlayingResponse.item.artists) {
+            artistNames.push(artist.name);
+        }
+        const artists: string = artistNames.join(" ");
+        if (!currentPlayingState || currentPlayingState.authors != artists || currentPlayingState.name != trackName) {
+            const searchResponse: LRCLibSearchResponse[] = await LRCLibApi.search(undefined, currentlyPlayingResponse.item.name, artists, undefined);
+            if (searchResponse.length != 0) {
+                const currentlyPlayingPoll = new SpotifyCurrentPlayingState(
+                    trackName,
+                    artists,
+                    searchResponse[0].plainLyrics,
+                    searchResponse[0].syncedLyrics
+                );
+                // TODO: update all lyrics
+            } else {
+                currentPlayingState = undefined;
+                // TODO: update no lyrics
+            }
+        } else {
+            // TODO: update current time lyrics
+        }
     }
-    // TODO: POLL STAT
 }
 
 async function authorize(context: vscode.ExtensionContext) {
