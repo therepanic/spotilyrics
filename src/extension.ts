@@ -10,6 +10,8 @@ import {clearInterval, setInterval} from "node:timers";
 import { SpotifyCurrentPlayingState } from './SpotifyCurrentPlayingState';
 import { LRCLibSearchResponse } from './api/response/LRCLibSearchResponse';
 import { LRCLibApi } from './api/LRCLibApi';
+import TreeMap from 'ts-treemap';
+import { LyricsEntry } from './LyricsEntry';
 
 let preAuthState: SpotifyPreAuthState | null;
 let authState: SpotifyAuthState | null;
@@ -30,7 +32,7 @@ export async function activate(context: vscode.ExtensionContext) {
             }
         );
 
-        await authorize(context);
+        await authorize(context, panel);
         if (authState == null) {
             await createServer(context, panel);
         }
@@ -127,8 +129,8 @@ async function createServer(context: vscode.ExtensionContext, panel: WebviewPane
 
                 if (!pollingInterval) {
                     pollingInterval = setInterval(() => {
-                        pollSpotifyStat(context);
-                    }, 1000);
+                        pollSpotifyStat(context, panel);
+                    }, 500);
                 }
 
                 vscode.window.showInformationMessage(`You have successfully signed in`);
@@ -157,7 +159,7 @@ async function createServer(context: vscode.ExtensionContext, panel: WebviewPane
     server.listen(8000);
 }
 
-async function pollSpotifyStat(context: vscode.ExtensionContext) {
+async function pollSpotifyStat(context: vscode.ExtensionContext, panel: WebviewPanel) {
     if (authState != null) {
         if (authState.expiresIn <= Date.now()) {
             const response = await SpotifyWebApi.refreshToken(authState.refreshToken, authState.clientId);
@@ -184,22 +186,68 @@ async function pollSpotifyStat(context: vscode.ExtensionContext) {
             if (searchResponse.length != 0) {
                 const currentlyPlayingPoll = new SpotifyCurrentPlayingState(
                     trackName,
-                    artists,
-                    searchResponse[0].plainLyrics,
-                    searchResponse[0].syncedLyrics
+                    artists
                 );
-                // TODO: update all lyrics
+                if (searchResponse[0].plainLyrics) {
+                    const plainLyricsStrs: string[] = searchResponse[0].plainLyrics
+                    .split(/\n\n/).map(s => s.trim()).filter(s => s !== '')
+                    .map(line => line + '\n');
+                    
+                    currentlyPlayingPoll.plainLyricsStrs = plainLyricsStrs;
+                }
+                // load synchronized lyrics in treemap
+                if (searchResponse[0].syncedLyrics) {
+                    const synchronizedLyricsMap = new TreeMap<number, LyricsEntry>();
+                    const synchronizedLyricsStrs: string[] = searchResponse[0].syncedLyrics.split(/(?=\[\d{2}:\d{2}\.\d{2}\])/).filter(s => s.trim() !== '');
+                    let id: number = 0;
+                    for (const lyricsStr of synchronizedLyricsStrs) {
+                        const match = lyricsStr.match(/\[(\d{2}):(\d{2})\.(\d{2})\]\s*(.*)/);
+                        if (match) {
+                            const minutes = parseInt(match[1], 10);
+                            const seconds = parseInt(match[2], 10);
+                            const hundredths = parseInt(match[3], 10);
+                            const text = match[4];
+
+                            const timeMs = minutes * 60 * 1000 + seconds * 1000 + hundredths * 10;
+
+                            synchronizedLyricsMap.set(timeMs, {id: id, text: text});
+                            id++;
+                        }
+                    }
+                    currentlyPlayingPoll.synchronizedLyricsMap = synchronizedLyricsMap;
+                }
+                currentPlayingState = currentlyPlayingPoll
+                if (!currentPlayingState.synchronizedLyricsMap) {
+                    panel.webview.postMessage({ command: 'addLyrics', lyrics: currentPlayingState.plainLyricsStrs })
+                } else {
+                    const value = currentPlayingState.synchronizedLyricsMap.floorEntry(currentlyPlayingResponse.progress_ms);
+                    let pick: number = -1;
+                    if (value) {
+                        pick = value[1].id;
+                    }
+                    const synchronizedLyricsStrs: object[] = [];
+                    for (const entry of currentPlayingState.synchronizedLyricsMap) {
+                        synchronizedLyricsStrs.push({ id: entry[1].id, text: entry[1].text, pick: pick });
+                    }
+                    panel.webview.postMessage({ command: 'addLyrics', lyrics: synchronizedLyricsStrs });
+                }
             } else {
                 currentPlayingState = undefined;
-                // TODO: update no lyrics
+                panel.webview.postMessage({ command: 'clearLyrics'});
             }
         } else {
-            // TODO: update current time lyrics
+            if (currentPlayingState.synchronizedLyricsMap) {
+                const value = currentPlayingState.synchronizedLyricsMap.floorEntry(currentlyPlayingResponse.progress_ms);
+                if (value) {
+                    console.log(value[1].id);
+                    panel.webview.postMessage({ command: 'pickLyrics', pick: value[1].id });
+                }
+            }
         }
     }
 }
 
-async function authorize(context: vscode.ExtensionContext) {
+async function authorize(context: vscode.ExtensionContext, panel: WebviewPanel) {
     const clientId = context.globalState.get<string>("clientId");
     const accessToken = context.globalState.get<string>("accessToken");
     const refreshToken = context.globalState.get<string>("refreshToken");
@@ -215,8 +263,8 @@ async function authorize(context: vscode.ExtensionContext) {
 
         if (!pollingInterval) {
             pollingInterval = setInterval(() => {
-                pollSpotifyStat(context);
-            }, 1000);
+                pollSpotifyStat(context, panel);
+            }, 500);
         }
     }
 }

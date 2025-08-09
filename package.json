@@ -39,6 +39,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "ts-treemap": "^1.1.0"
   }
 }

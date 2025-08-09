@@ -8,37 +8,97 @@
 </head>
 <body class="lyricsBody">
 <div class="box">
-<!--    <div class="line">Lorem ipsum dolor sit amet</div>-->
-<!--    <div class="line">Consectetur adipiscing elit</div>-->
-<!--    <div class="line">Sed do eiusmod tempor incididunt</div>-->
-<!--    <div class="line">Ut labore et dolore magna aliqua</div>-->
-<!--    <div class="line">Ut enim ad minim veniam</div>-->
-<!--    <div class="line">Quis nostrud exercitation ullamco</div>-->
-
-<!--    <div class="line">Laboris nisi ut aliquip ex ea</div>-->
-<!--    <div class="line">Commodo consequat duis aute</div>-->
-
-<!--    <div class="line">Irure dolor in reprehenderit</div>-->
-<!--    <div class="line">In voluptate velit esse cillum</div>-->
-<!--    <div class="line">Dolore eu fugiat nulla pariatur</div>-->
-<!--    <div class="line">Excepteur sint occaecat cupidatat</div>-->
-<!--    <div class="line">Non proident sunt in culpa</div>-->
-<!--    <div class="line">Qui officia deserunt mollit anim</div>-->
-<!--    <div class="line">Id est laborum consectetur</div>-->
-<!--    <div class="line">Adipiscing elit sed do</div>-->
-
-<!--    <div class="line">Eiusmod tempor incididunt ut</div>-->
-<!--    <div class="line">Labore et dolore magna aliqua</div>-->
-<!--    <div class="line">Ut enim ad minim veniam</div>-->
-<!--    <div class="line">Quis nostrud exercitation ullamco</div>-->
-<!--    <div class="line">Laboris nisi ut aliquip ex ea</div>-->
-
-<!--    <div class="line">Commodo consequat duis aute</div>-->
-<!--    <div class="line">Irure dolor in reprehenderit</div>-->
-<!--    <div class="line">In voluptate velit esse cillum</div>-->
-<!--    <div class="line">Dolore eu fugiat nulla pariatur</div>-->
-<!--    <div class="line">Excepteur sint occaecat cupidatat</div>-->
+<!--    <div class="line" data-lyrics-id="0">Lorem ipsum dolor sit amet</div>-->
     <div class="placeholder">Looks like we don’t have lyrics yet.</div>
 </div>
+<script>
+    window.addEventListener('message', event => {
+        const message = event.data;
+        if (message.command === 'addLyrics') {
+            const box = document.querySelector('.box');
+            const placeholder = box.querySelector('.placeholder');
+            const lines = box.querySelectorAll('.line');
+            if (placeholder) {
+                placeholder.remove();
+            }
+            if (lines.length > 0) {
+                for (const line of lines) {
+                    line.remove();
+                }
+            }
+            const allStrings = message.lyrics.every(item => typeof item === 'string');
+            if (allStrings) {
+                for (const line of message.lyrics) {
+                    const div = document.createElement('div');
+                    div.className = 'line';
+                    div.textContent = line;
+                    box.appendChild(div);
+                }
+            } else {
+                for (const line of message.lyrics) {
+                    const div = document.createElement('div');
+                    div.className = 'line';
+                    div.textContent = String(line.text);
+                    if (div.textContent === '') {
+                        div.textContent = '♪';
+                    }
+                    div.dataset.lyricsId = line.id;
+                    box.appendChild(div);
+                }
+            }
+            window.scrollTo(0, 0);
+            pickLyrics(message.pick);
+        } else if (message.command === 'clearLyrics') {
+            const box = document.querySelector('.box');
+            const placeholder = box.querySelector('.placeholder');
+            const lines = box.querySelectorAll('.line');
+            if (lines.length > 0) {
+                for (const line of lines) {
+                    line.remove();
+                }
+            }
+            if (!placeholder) {
+                const div = document.createElement('div');
+                div.className = 'placeholder';
+                div.textContent = "Looks like we don’t have lyrics yet.";
+                box.appendChild(div);
+            }
+        } else if (message.command === 'pickLyrics') {
+            pickLyrics(message.pick);
+        }
+    });
+
+
+
+    function pickLyrics(id) {
+        const box = document.querySelector('.box');
+        if (!box) {
+            return;
+        }
+
+        const lines = Array.from(box.querySelectorAll('.line'));
+        if (lines.length === 0) {
+            return;
+        }
+
+        const pickedIndex = lines.findIndex(line => line.dataset.lyricsId === String(id));
+        if (pickedIndex === -1) {
+            return;
+        }
+
+        for (const [index, line] of lines.entries()) {
+            if (index < pickedIndex) {
+                line.style.opacity = '0.35';
+            } else if (index === pickedIndex) {
+                line.style.opacity = '1';
+            } else {
+                line.style.opacity = '0.7';
+            }
+        }
+
+        const activeLine = lines[pickedIndex];
+        activeLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+</script>
 </body>
 </html>

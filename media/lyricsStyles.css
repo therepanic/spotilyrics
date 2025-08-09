@@ -57,4 +57,5 @@
     font-weight: 700;
     margin-bottom: 35px;
     opacity: 0.7;
+    transition: opacity 0.3s ease;
 }
