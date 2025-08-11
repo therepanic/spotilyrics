@@ -183,7 +183,7 @@ async function pollSpotifyStat(context: vscode.ExtensionContext, panel: WebviewP
         const artists: string = artistNames.join(" ");
         if (!currentPlayingState || currentPlayingState.authors != artists || currentPlayingState.name != trackName) {
             const searchResponse: LRCLibSearchResponse[] = await LRCLibApi.search(undefined, currentlyPlayingResponse.item.name, artists, undefined);
-            if (searchResponse.length != 0) {
+            if (searchResponse.length != 0 && !searchResponse[0].instrumental) {
                 const currentlyPlayingPoll = new SpotifyCurrentPlayingState(
                     trackName,
                     artists

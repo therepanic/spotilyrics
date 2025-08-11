@@ -4,5 +4,6 @@ export interface LRCLibSearchResponse {
     artistName: string,
     albumName: string,
     plainLyrics?: string,
-    syncedLyrics?: string
+    syncedLyrics?: string,
+    instrumental?: boolean
 }
