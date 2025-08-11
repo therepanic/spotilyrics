@@ -188,17 +188,25 @@ async function pollSpotifyStat(context: vscode.ExtensionContext, panel: WebviewP
                     trackName,
                     artists
                 );
-                if (searchResponse[0].plainLyrics) {
-                    const plainLyricsStrs: string[] = searchResponse[0].plainLyrics
+                let bestLyricsIndexLet: number = 0;
+                for (let i = 0; i < searchResponse.length; i++) {
+                    if (searchResponse[i].name.includes("Paused")) {
+                        bestLyricsIndexLet = i;
+                        break;
+                    }
+                }
+                const bestLyricsIndex: number = bestLyricsIndexLet;
+                if (searchResponse[bestLyricsIndex].plainLyrics) {
+                    const plainLyricsStrs: string[] = searchResponse[bestLyricsIndex].plainLyrics
                     .split(/\n\n/).map(s => s.trim()).filter(s => s !== '')
                     .map(line => line + '\n');
-                    
+
                     currentlyPlayingPoll.plainLyricsStrs = plainLyricsStrs;
                 }
                 // load synchronized lyrics in treemap
-                if (searchResponse[0].syncedLyrics) {
+                if (searchResponse[bestLyricsIndex].syncedLyrics) {
                     const synchronizedLyricsMap = new TreeMap<number, LyricsEntry>();
-                    const synchronizedLyricsStrs: string[] = searchResponse[0].syncedLyrics.split(/(?=\[\d{2}:\d{2}\.\d{2}\])/).filter(s => s.trim() !== '');
+                    const synchronizedLyricsStrs: string[] = searchResponse[bestLyricsIndex].syncedLyrics.split(/(?=\[\d{2}:\d{2}\.\d{2}\])/).filter(s => s.trim() !== '');
                     let id: number = 0;
                     for (const lyricsStr of synchronizedLyricsStrs) {
                         const match = lyricsStr.match(/\[(\d{2}):(\d{2})\.(\d{2})\]\s*(.*)/);
@@ -239,7 +247,6 @@ async function pollSpotifyStat(context: vscode.ExtensionContext, panel: WebviewP
             if (currentPlayingState.synchronizedLyricsMap) {
                 const value = currentPlayingState.synchronizedLyricsMap.floorEntry(currentlyPlayingResponse.progress_ms);
                 if (value) {
-                    console.log(value[1].id);
                     panel.webview.postMessage({ command: 'pickLyrics', pick: value[1].id });
                 }
             }
