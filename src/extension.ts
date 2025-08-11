@@ -198,7 +198,7 @@ async function pollSpotifyStat(context: vscode.ExtensionContext, panel: WebviewP
                 const bestLyricsIndex: number = bestLyricsIndexLet;
                 if (searchResponse[bestLyricsIndex].plainLyrics) {
                     const plainLyricsStrs: string[] = searchResponse[bestLyricsIndex].plainLyrics
-                    .split(/\n\n/).map(s => s.trim()).filter(s => s !== '')
+                    .split(/\n/).map(s => s.trim()).filter(s => s !== '')
                     .map(line => line + '\n');
 
                     currentlyPlayingPoll.plainLyricsStrs = plainLyricsStrs;

@@ -13,6 +13,11 @@
     src: url('fonts/CircularSpotifyText-Medium.otf') format('opentype');
     font-weight: 500;
 }
+@font-face {
+    font-family: 'CircularSpotifyText';
+    src: url('fonts/CircularSpotifyText-Light.otf') format('opentype');
+    font-weight: 200;
+}
 
 .lyricsBody {
     background-color: #333333;
@@ -44,6 +49,13 @@
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+}
+
+.lyrics-note {
+    font-weight: 300;
+    font-size: 15px;
+    opacity: 0.6;
+    margin-bottom: 25px;
 }
 
 @media (max-width: 1200px) {
