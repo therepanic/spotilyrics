@@ -1,16 +1,16 @@
-import { LRCLibSearchResponse } from "./response/LRCLibSearchResponse";
+import { LRCLibSearchResponse } from "./response/LRCLibGetResponse";
 
 export class LRCLibApi {
 
-    static async search(q?: string, trackName?: string, artistName?: string, albumName?: string) {
+    static async get(track_name?: string, artist_name?: string, album_name?: string, duration?: number) {
         const params = new URLSearchParams();
 
-        if (q) params.append('q', q);
-        if (trackName) params.append('track_name', trackName);
-        if (artistName) params.append('artist_name', artistName);
-        if (albumName) params.append('album_name', albumName);
+        if (track_name) params.append('track_name', track_name);
+        if (artist_name) params.append('artist_name', artist_name);
+        if (album_name) params.append('album_name', album_name);
+        if (duration) params.append('duration', duration.toString());
 
-        const url = `https://lrclib.net/api/search?${params.toString()}`;
+        const url = `https://lrclib.net/api/get?${params.toString()}`;
 
         const response = await fetch(url, {
             method: 'GET',
@@ -20,7 +20,7 @@ export class LRCLibApi {
             },
         });
 
-        return await response.json() as LRCLibSearchResponse[];
+        return await response.json() as LRCLibSearchResponse;
     }
 
 }

@@ -8,7 +8,7 @@ import {SpotifyPreAuthState} from "./SpotifyPreAuthState";
 import {SpotifyAuthState} from "./SpotifyAuthState";
 import {clearInterval, setInterval} from "node:timers";
 import { SpotifyCurrentPlayingState } from './SpotifyCurrentPlayingState';
-import { LRCLibSearchResponse } from './api/response/LRCLibSearchResponse';
+import { LRCLibSearchResponse } from './api/response/LRCLibGetResponse';
 import { LRCLibApi } from './api/LRCLibApi';
 import TreeMap from 'ts-treemap';
 import { LyricsEntry } from './LyricsEntry';
@@ -130,7 +130,7 @@ async function createServer(context: vscode.ExtensionContext, panel: WebviewPane
                 if (!pollingInterval) {
                     pollingInterval = setInterval(() => {
                         pollSpotifyStat(context, panel);
-                    }, 500);
+                    }, 300);
                 }
 
                 vscode.window.showInformationMessage(`You have successfully signed in`);
@@ -176,37 +176,32 @@ async function pollSpotifyStat(context: vscode.ExtensionContext, panel: WebviewP
         }
         const currentlyPlayingResponse = await SpotifyWebApi.getCurrentlyPlaying(authState.accessToken);
         const trackName = currentlyPlayingResponse.item.name;
+        const albumName = currentlyPlayingResponse.item.album.name;
         const artistNames: string[] = [];
+        const durationInMs: number = currentlyPlayingResponse.item.duration_ms;
+        const durationInS: number = Math.floor(durationInMs / 1000);
         for (const artist of currentlyPlayingResponse.item.artists) {
             artistNames.push(artist.name);
         }
         const artists: string = artistNames.join(" ");
         if (!currentPlayingState || currentPlayingState.authors != artists || currentPlayingState.name != trackName) {
-            const searchResponse: LRCLibSearchResponse[] = await LRCLibApi.search(undefined, currentlyPlayingResponse.item.name, artists, undefined);
-            if (searchResponse.length != 0 && !searchResponse[0].instrumental) {
+            const getLyricsResponse: LRCLibSearchResponse = await LRCLibApi.get(trackName, artists, albumName, durationInS);
+            if (!getLyricsResponse.statusCode || getLyricsResponse.statusCode !== 404 && !getLyricsResponse.instrumental) {
                 const currentlyPlayingPoll = new SpotifyCurrentPlayingState(
                     trackName,
                     artists
                 );
-                let bestLyricsIndexLet: number = 0;
-                for (let i = 0; i < searchResponse.length; i++) {
-                    if (searchResponse[i].name.includes("Paused")) {
-                        bestLyricsIndexLet = i;
-                        break;
-                    }
-                }
-                const bestLyricsIndex: number = bestLyricsIndexLet;
-                if (searchResponse[bestLyricsIndex].plainLyrics) {
-                    const plainLyricsStrs: string[] = searchResponse[bestLyricsIndex].plainLyrics
+                if (getLyricsResponse.plainLyrics) {
+                    const plainLyricsStrs: string[] = getLyricsResponse.plainLyrics
                     .split(/\n/).map(s => s.trim()).filter(s => s !== '')
                     .map(line => line + '\n');
 
                     currentlyPlayingPoll.plainLyricsStrs = plainLyricsStrs;
                 }
                 // load synchronized lyrics in treemap
-                if (searchResponse[bestLyricsIndex].syncedLyrics) {
+                if (getLyricsResponse.syncedLyrics) {
                     const synchronizedLyricsMap = new TreeMap<number, LyricsEntry>();
-                    const synchronizedLyricsStrs: string[] = searchResponse[bestLyricsIndex].syncedLyrics.split(/(?=\[\d{2}:\d{2}\.\d{2}\])/).filter(s => s.trim() !== '');
+                    const synchronizedLyricsStrs: string[] = getLyricsResponse.syncedLyrics.split(/(?=\[\d{2}:\d{2}\.\d{2}\])/).filter(s => s.trim() !== '');
                     let id: number = 0;
                     for (const lyricsStr of synchronizedLyricsStrs) {
                         const match = lyricsStr.match(/\[(\d{2}):(\d{2})\.(\d{2})\]\s*(.*)/);
@@ -271,7 +266,7 @@ async function authorize(context: vscode.ExtensionContext, panel: WebviewPanel) 
         if (!pollingInterval) {
             pollingInterval = setInterval(() => {
                 pollSpotifyStat(context, panel);
-            }, 500);
+            }, 300);
         }
     }
 }

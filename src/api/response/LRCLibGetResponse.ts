@@ -1,4 +1,5 @@
 export interface LRCLibSearchResponse {
+    statusCode?: number;
     name: string,
     trackName: string,
     artistName: string,
