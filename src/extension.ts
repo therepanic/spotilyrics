@@ -33,7 +33,7 @@ export async function activate(context: vscode.ExtensionContext) {
         );
 
         await authorize(context, panel);
-        if (authState == null) {
+        if (!authState) {
             await createServer(context, panel);
         }
         await printFrame(context, panel);
@@ -79,7 +79,7 @@ export async function deactivate() {
 async function printFrame(context: vscode.ExtensionContext, panel: WebviewPanel) {
     let htmlName;
     let cssName;
-    if (authState === null) {
+    if (!authState) {
         htmlName = "signInTemplate.html";
         cssName = "signInStyles.css";
     } else {
@@ -160,7 +160,7 @@ async function createServer(context: vscode.ExtensionContext, panel: WebviewPane
 }
 
 async function pollSpotifyStat(context: vscode.ExtensionContext, panel: WebviewPanel) {
-    if (authState != null) {
+    if (authState) {
         if (authState.expiresIn <= Date.now()) {
             const response = await SpotifyWebApi.refreshToken(authState.refreshToken, authState.clientId);
 
