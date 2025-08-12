@@ -61,6 +61,12 @@ export async function activate(context: vscode.ExtensionContext) {
                 vscode.env.openExternal(vscode.Uri.parse(await SpotifyWebApi.getAuthUrl(clientId, codeChallenge)));
             }
         });
+
+        panel.onDidChangeViewState(e => {
+            if (!e.webviewPanel.visible) {
+                currentPlayingState = undefined;
+            }
+        });
     });
     context.subscriptions.push(disposable);
 }
@@ -73,6 +79,9 @@ export async function deactivate() {
     if (server) {
         server.close();
         server = null;
+    }
+    if (currentPlayingState) {
+        currentPlayingState = undefined;
     }
 }
 
@@ -174,6 +183,12 @@ async function pollSpotifyStat(context: vscode.ExtensionContext, panel: WebviewP
             authState.accessToken = response.access_token;
             authState.expiresIn = expiresIn;
         }
+        await updateLyrics(panel);
+    }
+}
+
+async function updateLyrics(panel: WebviewPanel) {
+    if (authState) {
         const currentlyPlayingResponse = await SpotifyWebApi.getCurrentlyPlaying(authState.accessToken);
         const trackName = currentlyPlayingResponse.item.name;
         const albumName = currentlyPlayingResponse.item.album.name;
@@ -193,8 +208,8 @@ async function pollSpotifyStat(context: vscode.ExtensionContext, panel: WebviewP
                 );
                 if (getLyricsResponse.plainLyrics) {
                     const plainLyricsStrs: string[] = getLyricsResponse.plainLyrics
-                    .split(/\n/).map(s => s.trim()).filter(s => s !== '')
-                    .map(line => line + '\n');
+                        .split(/\n/).map(s => s.trim()).filter(s => s !== '')
+                        .map(line => line + '\n');
 
                     currentlyPlayingPoll.plainLyricsStrs = plainLyricsStrs;
                 }
