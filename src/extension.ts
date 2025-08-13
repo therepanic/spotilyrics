@@ -89,19 +89,25 @@ export async function deactivate() {
 async function printFrame(context: vscode.ExtensionContext, panel: WebviewPanel) {
     let htmlName;
     let cssName;
+    let scriptName;
     if (!authState) {
         htmlName = "signInTemplate.html";
-        cssName = "signInStyles.css";
+        cssName = "./styles/signInStyle.css";
+        scriptName = "./scripts/signInScript.js"
     } else {
         htmlName = "lyricsTemplate.html";
-        cssName = "lyricsStyles.css";
+        cssName = "./styles/lyricsStyle.css";
+        scriptName = "./scripts/lyricsScript.js"
     }
     const html = (await vscode.workspace.fs.readFile(vscode.Uri.joinPath(context.extensionUri, 'media', htmlName)))
         .toString();
     const cssUri = panel.webview.asWebviewUri(
         vscode.Uri.joinPath(context.extensionUri, 'media', cssName)
     );
-    panel.webview.html = html.replace('styles.css', cssUri.toString());
+    const scriptUri = panel.webview.asWebviewUri(
+        vscode.Uri.joinPath(context.extensionUri, 'media', scriptName)
+    );
+    panel.webview.html = html.replace('styles.css', cssUri.toString()).replace('script.js', scriptUri.toString());
 }
 
 function generateCodeVerifier(length = 49) {

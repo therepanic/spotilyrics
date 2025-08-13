@@ -24,13 +24,7 @@
 
     <button id="signInButton" class="btn-continue">Sign in</button>
 </div>
-<script>
-    const vscode = acquireVsCodeApi();
-
-    document.getElementById('signInButton')?.addEventListener('click', () => {
-        vscode.postMessage({ command: 'signInClicked', message: `${document.getElementById("clientIdInput").value}` });
-    });
-</script>
+<script src="style.js"></script>
 </body>
 
 </html>
