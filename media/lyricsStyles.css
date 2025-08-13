@@ -71,3 +71,13 @@
     opacity: 0.7;
     transition: opacity 0.3s ease;
 }
+
+.line.past {
+    opacity: 0.35;
+}
+.line.current {
+    opacity: 1;
+}
+.line.future {
+    opacity: 0.7;
+}

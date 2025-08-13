@@ -16,6 +16,7 @@ import { LyricsEntry } from './LyricsEntry';
 let preAuthState: SpotifyPreAuthState | null;
 let authState: SpotifyAuthState | null;
 let currentPlayingState: SpotifyCurrentPlayingState | undefined;
+let frozeUpdatingLyrics: boolean = false;
 
 let server: http.Server | null;
 let pollingInterval: NodeJS.Timeout | null;
@@ -183,12 +184,18 @@ async function pollSpotifyStat(context: vscode.ExtensionContext, panel: WebviewP
             authState.accessToken = response.access_token;
             authState.expiresIn = expiresIn;
         }
-        await updateLyrics(panel);
+        if (!frozeUpdatingLyrics) {
+            await updateLyrics(panel);
+        }
     }
 }
 
 async function updateLyrics(panel: WebviewPanel) {
     if (authState) {
+        if (frozeUpdatingLyrics) {
+            return;
+        }
+        frozeUpdatingLyrics = true;
         const currentlyPlayingResponse = await SpotifyWebApi.getCurrentlyPlaying(authState.accessToken);
         const trackName = currentlyPlayingResponse.item.name;
         const albumName = currentlyPlayingResponse.item.album.name;
@@ -201,7 +208,7 @@ async function updateLyrics(panel: WebviewPanel) {
         const artists: string = artistNames.join(" ");
         if (!currentPlayingState || currentPlayingState.authors != artists || currentPlayingState.name != trackName) {
             const getLyricsResponse: LRCLibSearchResponse = await LRCLibApi.get(trackName, artists, albumName, durationInS);
-            if (!getLyricsResponse.statusCode || getLyricsResponse.statusCode !== 404 && !getLyricsResponse.instrumental) {
+            if (!getLyricsResponse.statusCode && !getLyricsResponse.instrumental) {
                 const currentlyPlayingPoll = new SpotifyCurrentPlayingState(
                     trackName,
                     artists
@@ -261,6 +268,7 @@ async function updateLyrics(panel: WebviewPanel) {
                 }
             }
         }
+        frozeUpdatingLyrics = false;
     }
 }
 

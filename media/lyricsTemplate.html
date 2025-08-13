@@ -12,105 +12,87 @@
     <div class="placeholder">Looks like we don’t have lyrics yet.</div>
 </div>
 <script>
+    let lastLyricsHash = '';
+    let lastPickId = null;
+
     window.addEventListener('message', event => {
-        const message = event.data;
-        if (message.command === 'addLyrics') {
-            const box = document.querySelector('.box');
-            const placeholder = box.querySelector('.placeholder');
-            const lines = box.querySelectorAll('.line');
-            const lyricsNote = box.querySelector('.lyrics-note');
-            if (placeholder) {
-                placeholder.remove();
+        const { command, lyrics, pick } = event.data;
+
+        if (command === 'addLyrics') {
+            const lyricsHash = JSON.stringify(lyrics);
+            if (lyricsHash !== lastLyricsHash) {
+                renderLyrics(lyrics);
+                lastLyricsHash = lyricsHash;
             }
-            if (lyricsNote) {
-                lyricsNote.remove();
-            }
-            if (lines.length > 0) {
-                for (const line of lines) {
-                    line.remove();
-                }
-            }
-            const allStrings = message.lyrics.every(item => typeof item === 'string');
-            if (allStrings) {
-                const lyricsNote = document.createElement('div');
-                lyricsNote.className = 'lyrics-note';
-                lyricsNote.textContent = 'These lyrics aren\'t synced to the song yet.';
-                box.appendChild(lyricsNote);
-                for (const line of message.lyrics) {
-                    const div = document.createElement('div');
-                    div.className = 'line';
-                    div.style.opacity = '1';
-                    div.textContent = line;
-                    box.appendChild(div);
-                }
-            } else {
-                for (const line of message.lyrics) {
-                    const div = document.createElement('div');
-                    div.className = 'line';
-                    div.textContent = String(line.text);
-                    if (div.textContent === '') {
-                        div.textContent = '♪';
-                    }
-                    div.dataset.lyricsId = line.id;
-                    box.appendChild(div);
-                }
-            }
-            window.scrollTo(0, 0);
-            pickLyrics(message.pick);
-        } else if (message.command === 'clearLyrics') {
-            const box = document.querySelector('.box');
-            const placeholder = box.querySelector('.placeholder');
-            const lines = box.querySelectorAll('.line');
-            const lyricsNote = box.querySelector('.lyrics-note');
-            if (lyricsNote) {
-                lyricsNote.remove();
-            }
-            if (lines.length > 0) {
-                for (const line of lines) {
-                    line.remove();
-                }
-            }
-            if (!placeholder) {
-                const div = document.createElement('div');
-                div.className = 'placeholder';
-                div.textContent = "Looks like we don’t have lyrics yet.";
-                box.appendChild(div);
-            }
-        } else if (message.command === 'pickLyrics') {
-            pickLyrics(message.pick);
+            pickLyrics(pick);
+        }
+        else if (command === 'clearLyrics') {
+            clearLyrics();
+        }
+        else if (command === 'pickLyrics') {
+            pickLyrics(pick);
         }
     });
 
+    function renderLyrics(lyrics) {
+        const box = document.querySelector('.box');
+        box.innerHTML = '';
 
+        const allStrings = lyrics.every(item => typeof item === 'string');
+        if (allStrings) {
+            const note = document.createElement('div');
+            note.className = 'lyrics-note';
+            note.textContent = 'These lyrics aren\'t synced to the song yet.';
+            box.appendChild(note);
+            lyrics.forEach(text => {
+                const div = document.createElement('div');
+                div.className = 'line';
+                div.style.opacity = '1';
+                div.textContent = text;
+                box.appendChild(div);
+            });
+        } else {
+            lyrics.forEach(line => {
+                const div = document.createElement('div');
+                div.className = 'line future';
+                div.textContent = line.text || '♪';
+                div.dataset.lyricsId = line.id;
+                box.appendChild(div);
+            });
+        }
+        window.scrollTo(0, 0);
+    }
+
+    function clearLyrics() {
+        const box = document.querySelector('.box');
+        box.innerHTML = `<div class="placeholder">Looks like we don’t have lyrics yet.</div>`;
+        lastLyricsHash = '';
+        lastPickId = null;
+    }
 
     function pickLyrics(id) {
-        const box = document.querySelector('.box');
-        if (!box) {
-            return;
-        }
+        if (id === lastPickId) return;
+        lastPickId = id;
 
-        const lines = Array.from(box.querySelectorAll('.line'));
-        if (lines.length === 0) {
-            return;
-        }
+        const lines = Array.from(document.querySelectorAll('.line'));
+        if (!lines.length) return;
 
         const pickedIndex = lines.findIndex(line => line.dataset.lyricsId === String(id));
-        if (pickedIndex === -1) {
-            return;
-        }
+        if (pickedIndex === -1) return;
 
-        for (const [index, line] of lines.entries()) {
+        lines.forEach((line, index) => {
+            line.classList.remove('past', 'current', 'future');
+
             if (index < pickedIndex) {
-                line.style.opacity = '0.35';
+                line.classList.add('past');
             } else if (index === pickedIndex) {
-                line.style.opacity = '1';
+                line.classList.add('current');
             } else {
-                line.style.opacity = '0.7';
+                line.classList.add('future');
             }
-        }
+        });
 
-        const activeLine = lines[pickedIndex];
-        activeLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        lines[pickedIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 </script>
 </body>
