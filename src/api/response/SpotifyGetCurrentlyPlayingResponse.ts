@@ -16,4 +16,9 @@ interface Artist {
 
 interface Album {
     name: string;
+    images: Image[];
+}
+
+interface Image {
+    url: string;
 }

@@ -19,8 +19,9 @@
     font-weight: 200;
 }
 
-.lyricsBody {
+body {
     background-color: #333333;
+    transition: opacity 0.3s ease;
     font-family: 'CircularSpotifyText', sans-serif;
     margin: 0;
     padding: 0;

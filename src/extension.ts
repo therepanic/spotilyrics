@@ -1,17 +1,19 @@
 import * as vscode from 'vscode';
+import {WebviewPanel} from 'vscode';
 import * as crypto from 'crypto';
-import {WebviewPanel} from "vscode";
 import {SpotifyWebApi} from "./api/SpotifyWebApi";
 import * as http from "http";
 import {IncomingMessage} from "node:http";
 import {SpotifyPreAuthState} from "./SpotifyPreAuthState";
 import {SpotifyAuthState} from "./SpotifyAuthState";
 import {clearInterval, setInterval} from "node:timers";
-import { SpotifyCurrentPlayingState } from './SpotifyCurrentPlayingState';
-import { LRCLibSearchResponse } from './api/response/LRCLibGetResponse';
-import { LRCLibApi } from './api/LRCLibApi';
+import {SpotifyCurrentPlayingState} from './SpotifyCurrentPlayingState';
+import {LRCLibSearchResponse} from './api/response/LRCLibGetResponse';
+import {LRCLibApi} from './api/LRCLibApi';
 import TreeMap from 'ts-treemap';
-import { LyricsEntry } from './LyricsEntry';
+import {LyricsEntry} from './LyricsEntry';
+
+const ColorThief = require('colorthief');
 
 let preAuthState: SpotifyPreAuthState | null;
 let authState: SpotifyAuthState | null;
@@ -203,9 +205,10 @@ async function updateLyrics(panel: WebviewPanel) {
         }
         frozeUpdatingLyrics = true;
         const currentlyPlayingResponse = await SpotifyWebApi.getCurrentlyPlaying(authState.accessToken);
-        const trackName = currentlyPlayingResponse.item.name;
-        const albumName = currentlyPlayingResponse.item.album.name;
+        const trackName: string = currentlyPlayingResponse.item.name;
+        const albumName: string = currentlyPlayingResponse.item.album.name;
         const artistNames: string[] = [];
+        const albumImages = currentlyPlayingResponse.item.album.images;
         const durationInMs: number = currentlyPlayingResponse.item.duration_ms;
         const durationInS: number = Math.floor(durationInMs / 1000);
         for (const artist of currentlyPlayingResponse.item.artists) {
@@ -249,7 +252,7 @@ async function updateLyrics(panel: WebviewPanel) {
                 }
                 currentPlayingState = currentlyPlayingPoll
                 if (!currentPlayingState.synchronizedLyricsMap) {
-                    panel.webview.postMessage({ command: 'addLyrics', lyrics: currentPlayingState.plainLyricsStrs })
+                    panel.webview.postMessage({ command: 'addLyrics', lyrics: currentPlayingState.plainLyricsStrs, color: await getAccentColorFromUrl(albumImages[0].url) });
                 } else {
                     const value = currentPlayingState.synchronizedLyricsMap.floorEntry(currentlyPlayingResponse.progress_ms);
                     let pick: number = -1;
@@ -260,11 +263,11 @@ async function updateLyrics(panel: WebviewPanel) {
                     for (const entry of currentPlayingState.synchronizedLyricsMap) {
                         synchronizedLyricsStrs.push({ id: entry[1].id, text: entry[1].text, pick: pick });
                     }
-                    panel.webview.postMessage({ command: 'addLyrics', lyrics: synchronizedLyricsStrs });
+                    panel.webview.postMessage({ command: 'addLyrics', lyrics: synchronizedLyricsStrs, color: await getAccentColorFromUrl(albumImages[0].url) });
                 }
             } else {
                 currentPlayingState = undefined;
-                panel.webview.postMessage({ command: 'clearLyrics'});
+                panel.webview.postMessage({ command: 'clearLyrics', color: '#333333' });
             }
         } else {
             if (currentPlayingState.synchronizedLyricsMap) {
@@ -276,6 +279,50 @@ async function updateLyrics(panel: WebviewPanel) {
         }
         frozeUpdatingLyrics = false;
     }
+}
+
+async function getAccentColorFromUrl(imageUrl: string, targetLightness = 0.2): Promise<string> {
+    const res = await fetch(imageUrl);
+    const buffer = Buffer.from(await res.arrayBuffer());
+
+    const palette = await ColorThief.getPalette(buffer, 8);
+    let accent = palette[0];
+    return adjustLightnessRgbToHex(accent, targetLightness);
+}
+
+function adjustLightnessRgbToHex([r, g, b]: number[], targetL: number): string {
+    let R = r / 255, G = g / 255, B = b / 255;
+    const max = Math.max(R, G, B), min = Math.min(R, G, B);
+    let h = 0, s = 0, l = (max + min) / 2;
+    if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case R: h = (G - B) / d + (G < B ? 6 : 0); break;
+            case G: h = (B - R) / d + 2; break;
+            case B: h = (R - G) / d + 4; break;
+        }
+        h /= 6;
+    }
+    if (l > targetL) l = targetL;
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    const hue2rgb = (p: number, q: number, t: number): number => {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1 / 6) return p + (q - p) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+        return p;
+    };
+    const rr = Math.round(hue2rgb(p, q, h + 1 / 3) * 255);
+    const gg = Math.round(hue2rgb(p, q, h) * 255);
+    const bb = Math.round(hue2rgb(p, q, h - 1 / 3) * 255);
+    return rgbToHex(rr, gg, bb);
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+    return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1).toUpperCase()}`;
 }
 
 async function authorize(context: vscode.ExtensionContext, panel: WebviewPanel) {

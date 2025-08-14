@@ -2,7 +2,12 @@ let lastLyricsHash = '';
 let lastPickId = null;
 
 window.addEventListener('message', event => {
-    const { command, lyrics, pick } = event.data;
+    const { command, lyrics, pick, color } = event.data;
+
+    if (color) {
+        const body = document.body;
+        body.style.backgroundColor = color;
+    }
 
     if (command === 'addLyrics') {
         const lyricsHash = JSON.stringify(lyrics);
