@@ -1,6 +1,16 @@
 let lastLyricsHash = '';
 let lastPickId = null;
 
+let lyricsNotFound = ["Looks like we don’t have the lyrics for this song yet.", "Looks like we don’t have the lyrics for this song.",
+    "Hmm. We don't know the lyrics for this one.", "You'll have to guess the lyrics for this one."];
+
+function getRandomForLyricsNotFound() {
+    const randomIndex = Math.floor(Math.random() * lyricsNotFound.length);
+    return lyricsNotFound[randomIndex];
+}
+
+document.querySelector(".placeholder").textContent = getRandomForLyricsNotFound();
+
 window.addEventListener('message', event => {
     const { command, lyrics, pick, color } = event.data;
 
@@ -55,8 +65,12 @@ function renderLyrics(lyrics) {
 }
 
 function clearLyrics() {
+    const placeholder = document.querySelector(".placeholder");
+    if (placeholder) {
+        return;
+    }
     const box = document.querySelector('.box');
-    box.innerHTML = `<div class="placeholder">Looks like we don’t have lyrics yet.</div>`;
+    box.innerHTML = `<div class="placeholder">${getRandomForLyricsNotFound()}</div>`;
     lastLyricsHash = '';
     lastPickId = null;
 }
