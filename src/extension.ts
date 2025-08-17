@@ -15,6 +15,8 @@ import {LyricsEntry} from './LyricsEntry';
 
 const ColorThief = require('colorthief');
 
+let panel: WebviewPanel;
+
 let preAuthState: SpotifyPreAuthState | null;
 let authState: SpotifyAuthState | null;
 let currentPlayingState: SpotifyCurrentPlayingState | undefined;
@@ -25,7 +27,7 @@ let pollingInterval: NodeJS.Timeout | null;
 
 export async function activate(context: vscode.ExtensionContext) {
     const disposable = vscode.commands.registerCommand('spotilyrics.showLyrics', async () => {
-        const panel = vscode.window.createWebviewPanel(
+        panel = vscode.window.createWebviewPanel(
             'lyrics',
             'Spotify Lyrics',
             vscode.ViewColumn.Two,
@@ -35,11 +37,11 @@ export async function activate(context: vscode.ExtensionContext) {
             }
         );
 
-        await authorize(context, panel);
+        await authorize(context);
         if (!authState) {
-            await createServer(context, panel);
+            await createServer(context);
         }
-        await printFrame(context, panel);
+        await printFrame(context);
 
         panel.webview.onDidReceiveMessage(async message => {
             if (message.command === 'signInClicked') {
@@ -88,7 +90,7 @@ export async function deactivate() {
     }
 }
 
-async function printFrame(context: vscode.ExtensionContext, panel: WebviewPanel) {
+async function printFrame(context: vscode.ExtensionContext) {
     let htmlName;
     let cssName;
     let scriptName;
@@ -121,7 +123,7 @@ function generateCodeVerifier(length = 49) {
     return verifier;
 }
 
-async function createServer(context: vscode.ExtensionContext, panel: WebviewPanel) {
+async function createServer(context: vscode.ExtensionContext) {
     server = http.createServer(async (req: IncomingMessage, res: InstanceType<any>) => {
         const rawUrl = req.url ?? '/';
         const parsedUrl = new URL(rawUrl, 'http://localhost');
@@ -143,11 +145,11 @@ async function createServer(context: vscode.ExtensionContext, panel: WebviewPane
                 authState = new SpotifyAuthState(preAuthState.clientId, response.access_token, response.refresh_token, expiresIn);
                 preAuthState = null;
 
-                await printFrame(context, panel);
+                await printFrame(context);
 
                 if (!pollingInterval) {
                     pollingInterval = setInterval(() => {
-                        pollSpotifyStat(context, panel);
+                        pollSpotifyStat(context);
                     }, 300);
                 }
 
@@ -177,7 +179,7 @@ async function createServer(context: vscode.ExtensionContext, panel: WebviewPane
     server.listen(8000);
 }
 
-async function pollSpotifyStat(context: vscode.ExtensionContext, panel: WebviewPanel) {
+async function pollSpotifyStat(context: vscode.ExtensionContext) {
     if (authState) {
         if (authState.expiresIn <= Date.now()) {
             const response = await SpotifyWebApi.refreshToken(authState.refreshToken, authState.clientId);
@@ -193,12 +195,12 @@ async function pollSpotifyStat(context: vscode.ExtensionContext, panel: WebviewP
             authState.expiresIn = expiresIn;
         }
         if (!frozeUpdatingLyrics) {
-            await updateLyrics(panel);
+            await updateLyrics();
         }
     }
 }
 
-async function updateLyrics(panel: WebviewPanel) {
+async function updateLyrics() {
     if (authState) {
         if (frozeUpdatingLyrics) {
             return;
@@ -325,7 +327,7 @@ function rgbToHex(r: number, g: number, b: number): string {
     return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1).toUpperCase()}`;
 }
 
-async function authorize(context: vscode.ExtensionContext, panel: WebviewPanel) {
+async function authorize(context: vscode.ExtensionContext) {
     const clientId = context.globalState.get<string>("clientId");
     const accessToken = context.globalState.get<string>("accessToken");
     const refreshToken = context.globalState.get<string>("refreshToken");
@@ -341,7 +343,7 @@ async function authorize(context: vscode.ExtensionContext, panel: WebviewPanel) 
 
         if (!pollingInterval) {
             pollingInterval = setInterval(() => {
-                pollSpotifyStat(context, panel);
+                pollSpotifyStat(context);
             }, 300);
         }
     }
