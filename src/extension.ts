@@ -137,10 +137,10 @@ async function createServer(context: vscode.ExtensionContext) {
 
                 const expiresIn = Date.now() + response.expires_in * 1000;
 
-                context.globalState.update("clientId", preAuthState.clientId);
-                context.globalState.update("accessToken", response.access_token);
-                context.globalState.update("refreshToken", response.refresh_token);
-                context.globalState.update("expiresIn", expiresIn);
+                context.secrets.store("clientId", preAuthState.clientId);
+                context.secrets.store("accessToken", response.access_token);
+                context.secrets.store("refreshToken", response.refresh_token);
+                context.secrets.store("expiresIn", String(expiresIn));
 
                 authState = new SpotifyAuthState(preAuthState.clientId, response.access_token, response.refresh_token, expiresIn);
                 preAuthState = null;
@@ -186,9 +186,9 @@ async function pollSpotifyStat(context: vscode.ExtensionContext) {
 
             const expiresIn = Date.now() + response.expires_in * 1000;
 
-            context.globalState.update("accessToken", response.access_token);
-            context.globalState.update("refreshToken", response.refresh_token);
-            context.globalState.update("expiresIn", expiresIn);
+            context.secrets.store("accessToken", response.access_token);
+            context.secrets.store("refreshToken", response.refresh_token);
+            context.secrets.store("expiresIn", String(expiresIn));
 
             authState.refreshToken = response.refresh_token;
             authState.accessToken = response.access_token;
@@ -328,10 +328,10 @@ function rgbToHex(r: number, g: number, b: number): string {
 }
 
 async function authorize(context: vscode.ExtensionContext) {
-    const clientId = context.globalState.get<string>("clientId");
-    const accessToken = context.globalState.get<string>("accessToken");
-    const refreshToken = context.globalState.get<string>("refreshToken");
-    const expiresInStr = context.globalState.get<string>("expiresIn");
+    const clientId = await context.secrets.get("clientId");
+    const accessToken = await context.secrets.get("accessToken");
+    const refreshToken = await context.secrets.get("refreshToken");
+    const expiresInStr = await context.secrets.get("expiresIn");
 
     if (clientId && accessToken && refreshToken && expiresInStr) {
         authState = new SpotifyAuthState(
