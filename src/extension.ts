@@ -6,7 +6,7 @@ import * as http from 'http';
 import {IncomingMessage} from 'node:http';
 import {SpotifyPreAuthState} from './SpotifyPreAuthState';
 import {SpotifyAuthState} from './SpotifyAuthState';
-import {clearInterval, setInterval} from 'node:timers';
+import {clearTimeout} from 'node:timers';
 import {SpotifyCurrentPlayingState} from './SpotifyCurrentPlayingState';
 import {LRCLibSearchResponse} from './api/response/LRCLibGetResponse';
 import {LRCLibApi} from './api/LRCLibApi';
@@ -20,10 +20,9 @@ let panel: WebviewPanel;
 let preAuthState: SpotifyPreAuthState | null;
 let authState: SpotifyAuthState | null;
 let currentPlayingState: SpotifyCurrentPlayingState | undefined;
-let frozeUpdatingLyrics: boolean = false;
 
 let server: http.Server | null;
-let pollingInterval: NodeJS.Timeout | null;
+let pollingTimeout: NodeJS.Timeout | null;
 
 export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('spotilyrics.lyrics', async () => {
@@ -85,9 +84,9 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 export async function deactivate() {
-    if (pollingInterval) {
-        clearInterval(pollingInterval);
-        pollingInterval = null;
+    if (pollingTimeout) {
+        clearTimeout(pollingTimeout);
+        pollingTimeout = null;
     }
     if (server) {
         server.close();
@@ -155,10 +154,15 @@ async function createServer(context: vscode.ExtensionContext) {
 
                 await printFrame(context);
 
-                if (!pollingInterval) {
-                    pollingInterval = setInterval(() => {
-                        pollSpotifyStat(context);
-                    }, 300);
+                if (!pollingTimeout) {
+                    const loop = async () => {
+                        try {
+                            await pollSpotifyStat(context);
+                        } finally {
+                            pollingTimeout = setTimeout(loop, 300);
+                        }
+                    };
+                    loop();
                 }
 
                 vscode.window.showInformationMessage(`You have successfully signed in`);
@@ -202,9 +206,7 @@ async function pollSpotifyStat(context: vscode.ExtensionContext) {
                 authState.accessToken = response.access_token;
                 authState.expiresIn = expiresIn;
             }
-            if (!frozeUpdatingLyrics) {
-                await updateLyrics();
-            }
+            await updateLyrics();
         }
     } catch (err) {
         console.error(`pollSpotifyStat error: ${err}`);
@@ -215,10 +217,6 @@ async function pollSpotifyStat(context: vscode.ExtensionContext) {
 
 async function updateLyrics() {
     if (authState) {
-        if (frozeUpdatingLyrics) {
-            return;
-        }
-        frozeUpdatingLyrics = true;
         const currentlyPlayingResponse = await SpotifyWebApi.getCurrentlyPlaying(authState.accessToken);
         const trackName: string = currentlyPlayingResponse.item.name;
         const albumName: string = currentlyPlayingResponse.item.album.name;
@@ -292,7 +290,6 @@ async function updateLyrics() {
                 }
             }
         }
-        frozeUpdatingLyrics = false;
     }
 }
 
@@ -354,10 +351,15 @@ async function authorize(context: vscode.ExtensionContext) {
             Number(expiresInStr)
         );
 
-        if (!pollingInterval) {
-            pollingInterval = setInterval(() => {
-                pollSpotifyStat(context);
-            }, 300);
+        if (!pollingTimeout) {
+            const loop = async () => {
+                try {
+                    await pollSpotifyStat(context);
+                } finally {
+                    pollingTimeout = setTimeout(loop, 300);
+                }
+            };
+            loop();
         }
     }
 }
