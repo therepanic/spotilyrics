@@ -187,24 +187,30 @@ async function createServer(context: vscode.ExtensionContext) {
 }
 
 async function pollSpotifyStat(context: vscode.ExtensionContext) {
-    if (authState) {
-        if (authState.expiresIn <= Date.now()) {
-            const response = await SpotifyWebApi.refreshToken(authState.refreshToken, authState.clientId);
+    try {
+        if (authState) {
+            if (authState.expiresIn <= Date.now()) {
+                const response = await SpotifyWebApi.refreshToken(authState.refreshToken, authState.clientId);
 
-            const expiresIn = Date.now() + response.expires_in * 1000;
+                const expiresIn = Date.now() + response.expires_in * 1000;
 
-            context.secrets.store('accessToken', response.access_token);
-            context.secrets.store('refreshToken', response.refresh_token);
-            context.secrets.store('expiresIn', String(expiresIn));
+                context.secrets.store('accessToken', response.access_token);
+                context.secrets.store('refreshToken', response.refresh_token);
+                context.secrets.store('expiresIn', String(expiresIn));
 
-            authState.refreshToken = response.refresh_token;
-            authState.accessToken = response.access_token;
-            authState.expiresIn = expiresIn;
+                authState.refreshToken = response.refresh_token;
+                authState.accessToken = response.access_token;
+                authState.expiresIn = expiresIn;
+            }
+            if (!frozeUpdatingLyrics) {
+                await updateLyrics();
+            }
         }
-        if (!frozeUpdatingLyrics) {
-            await updateLyrics();
-        }
+    } catch (err) {
+        console.error(`pollSpotifyStat error: ${err}`);
+        vscode.window.showErrorMessage(`pollSpotifyStat error: ${err}`)
     }
+
 }
 
 async function updateLyrics() {
