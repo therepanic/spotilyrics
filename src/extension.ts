@@ -26,7 +26,7 @@ let server: http.Server | null;
 let pollingInterval: NodeJS.Timeout | null;
 
 export async function activate(context: vscode.ExtensionContext) {
-    const disposable = vscode.commands.registerCommand('spotilyrics.showLyrics', async () => {
+    context.subscriptions.push(vscode.commands.registerCommand('spotilyrics.lyrics', async () => {
         panel = vscode.window.createWebviewPanel(
             'lyrics',
             'Spotify Lyrics',
@@ -72,8 +72,16 @@ export async function activate(context: vscode.ExtensionContext) {
                 currentPlayingState = undefined;
             }
         });
-    });
-    context.subscriptions.push(disposable);
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('spotilyrics.logout', async () => {
+        context.secrets.delete("clientId");
+        context.secrets.delete("accessToken");
+        context.secrets.delete("refreshToken");
+        context.secrets.delete("expiresIn");
+        await deactivate();
+        await createServer(context);
+        await printFrame(context);
+    }));
 }
 
 export async function deactivate() {
@@ -85,9 +93,9 @@ export async function deactivate() {
         server.close();
         server = null;
     }
-    if (currentPlayingState) {
-        currentPlayingState = undefined;
-    }
+    authState = null;
+    preAuthState = null;
+    currentPlayingState = undefined;
 }
 
 async function printFrame(context: vscode.ExtensionContext) {

@@ -2,7 +2,7 @@
   "name": "spotilyrics",
   "displayName": "Spotilyrics",
   "description": "See synchronized Spotify lyrics inside VS Code while coding",
-  "version": "0.0.1",
+  "version": "1.0.0-SNAPSHOT",
   "engines": {
     "vscode": "^1.39.0"
   },
@@ -14,8 +14,12 @@
   "contributes": {
     "commands": [
       {
-        "command": "spotilyrics.showLyrics",
-        "title": "Show Spotify Lyrics"
+        "command": "spotilyrics.lyrics",
+        "title": "Show Spotify Lyrics via Spotilyrics"
+      },
+      {
+        "command": "spotilyrics.logout",
+        "title": "Logout from Spotilyrics"
       }
     ]
   },
