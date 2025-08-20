@@ -1,6 +1,6 @@
-import { SpotifyGetCurrentlyPlayingResponse } from "./response/SpotifyGetCurrentlyPlayingResponse";
-import {SpotifyGetTokenResponse} from "./response/SpotifyGetTokenResponse";
-import {SpotifyRefreshTokenResponse} from "./response/SpotifyRefreshTokenResponse";
+import { SpotifyGetCurrentlyPlayingResponse } from './response/SpotifyGetCurrentlyPlayingResponse';
+import {SpotifyGetTokenResponse} from './response/SpotifyGetTokenResponse';
+import {SpotifyRefreshTokenResponse} from './response/SpotifyRefreshTokenResponse';
 
 export class SpotifyWebApi {
 

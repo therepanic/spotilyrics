@@ -1,4 +1,4 @@
-import { LRCLibSearchResponse } from "./response/LRCLibGetResponse";
+import { LRCLibSearchResponse } from './response/LRCLibGetResponse';
 
 export class LRCLibApi {
 

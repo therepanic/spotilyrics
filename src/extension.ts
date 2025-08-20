@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 import {WebviewPanel} from 'vscode';
 import * as crypto from 'crypto';
-import {SpotifyWebApi} from "./api/SpotifyWebApi";
-import * as http from "http";
-import {IncomingMessage} from "node:http";
-import {SpotifyPreAuthState} from "./SpotifyPreAuthState";
-import {SpotifyAuthState} from "./SpotifyAuthState";
-import {clearInterval, setInterval} from "node:timers";
+import {SpotifyWebApi} from './api/SpotifyWebApi';
+import * as http from 'http';
+import {IncomingMessage} from 'node:http';
+import {SpotifyPreAuthState} from './SpotifyPreAuthState';
+import {SpotifyAuthState} from './SpotifyAuthState';
+import {clearInterval, setInterval} from 'node:timers';
 import {SpotifyCurrentPlayingState} from './SpotifyCurrentPlayingState';
 import {LRCLibSearchResponse} from './api/response/LRCLibGetResponse';
 import {LRCLibApi} from './api/LRCLibApi';
@@ -59,8 +59,8 @@ export async function activate(context: vscode.ExtensionContext) {
                     clientId,
                     codeVerifier,
                     codeChallenge,
-                    "authorization_code",
-                    "http://127.0.0.1:8000/callback"
+                    'authorization_code',
+                'http://127.0.0.1:8000/callback'
                 );
 
                 vscode.env.openExternal(vscode.Uri.parse(await SpotifyWebApi.getAuthUrl(clientId, codeChallenge)));
@@ -74,10 +74,10 @@ export async function activate(context: vscode.ExtensionContext) {
         });
     }));
     context.subscriptions.push(vscode.commands.registerCommand('spotilyrics.logout', async () => {
-        context.secrets.delete("clientId");
-        context.secrets.delete("accessToken");
-        context.secrets.delete("refreshToken");
-        context.secrets.delete("expiresIn");
+        context.secrets.delete('clientId');
+        context.secrets.delete('accessToken');
+        context.secrets.delete('refreshToken');
+        context.secrets.delete('expiresIn');
         await deactivate();
         await createServer(context);
         await printFrame(context);
@@ -103,13 +103,13 @@ async function printFrame(context: vscode.ExtensionContext) {
     let cssName;
     let scriptName;
     if (!authState) {
-        htmlName = "signInTemplate.html";
-        cssName = "./styles/signInStyle.css";
-        scriptName = "./scripts/signInScript.js"
+        htmlName = 'signInTemplate.html';
+        cssName = './styles/signInStyle.css';
+        scriptName = './scripts/signInScript.js';
     } else {
-        htmlName = "lyricsTemplate.html";
-        cssName = "./styles/lyricsStyle.css";
-        scriptName = "./scripts/lyricsScript.js"
+        htmlName = 'lyricsTemplate.html';
+        cssName = './styles/lyricsStyle.css';
+        scriptName = './scripts/lyricsScript.js';
     }
     const html = (await vscode.workspace.fs.readFile(vscode.Uri.joinPath(context.extensionUri, 'media', htmlName)))
         .toString();
@@ -145,10 +145,10 @@ async function createServer(context: vscode.ExtensionContext) {
 
                 const expiresIn = Date.now() + response.expires_in * 1000;
 
-                context.secrets.store("clientId", preAuthState.clientId);
-                context.secrets.store("accessToken", response.access_token);
-                context.secrets.store("refreshToken", response.refresh_token);
-                context.secrets.store("expiresIn", String(expiresIn));
+                context.secrets.store('clientId', preAuthState.clientId);
+                context.secrets.store('accessToken', response.access_token);
+                context.secrets.store('refreshToken', response.refresh_token);
+                context.secrets.store('expiresIn', String(expiresIn));
 
                 authState = new SpotifyAuthState(preAuthState.clientId, response.access_token, response.refresh_token, expiresIn);
                 preAuthState = null;
@@ -183,7 +183,6 @@ async function createServer(context: vscode.ExtensionContext) {
             res.end('Not Found');
         }
     });
-
     server.listen(8000);
 }
 
@@ -194,9 +193,9 @@ async function pollSpotifyStat(context: vscode.ExtensionContext) {
 
             const expiresIn = Date.now() + response.expires_in * 1000;
 
-            context.secrets.store("accessToken", response.access_token);
-            context.secrets.store("refreshToken", response.refresh_token);
-            context.secrets.store("expiresIn", String(expiresIn));
+            context.secrets.store('accessToken', response.access_token);
+            context.secrets.store('refreshToken', response.refresh_token);
+            context.secrets.store('expiresIn', String(expiresIn));
 
             authState.refreshToken = response.refresh_token;
             authState.accessToken = response.access_token;
@@ -224,7 +223,7 @@ async function updateLyrics() {
         for (const artist of currentlyPlayingResponse.item.artists) {
             artistNames.push(artist.name);
         }
-        const artists: string = artistNames.join(" ");
+        const artists: string = artistNames.join(' ');
         if (!currentPlayingState || currentPlayingState.authors != artists || currentPlayingState.name != trackName) {
             const getLyricsResponse: LRCLibSearchResponse = await LRCLibApi.get(trackName, artists, albumName, durationInS);
             if (!getLyricsResponse.statusCode && !getLyricsResponse.instrumental) {
@@ -336,10 +335,10 @@ function rgbToHex(r: number, g: number, b: number): string {
 }
 
 async function authorize(context: vscode.ExtensionContext) {
-    const clientId = await context.secrets.get("clientId");
-    const accessToken = await context.secrets.get("accessToken");
-    const refreshToken = await context.secrets.get("refreshToken");
-    const expiresInStr = await context.secrets.get("expiresIn");
+    const clientId = await context.secrets.get('clientId');
+    const accessToken = await context.secrets.get('accessToken');
+    const refreshToken = await context.secrets.get('refreshToken');
+    const expiresInStr = await context.secrets.get('expiresIn');
 
     if (clientId && accessToken && refreshToken && expiresInStr) {
         authState = new SpotifyAuthState(
