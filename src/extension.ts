@@ -218,6 +218,11 @@ async function pollSpotifyStat(context: vscode.ExtensionContext) {
 async function updateLyrics() {
     if (authState) {
         const currentlyPlayingResponse = await SpotifyWebApi.getCurrentlyPlaying(authState.accessToken);
+        if (!currentlyPlayingResponse) {
+            currentPlayingState = undefined;
+            panel.webview.postMessage({ command: 'clearLyrics', color: '#333333' });
+            return;
+        }
         const trackName: string = currentlyPlayingResponse.item.name;
         const albumName: string = currentlyPlayingResponse.item.album.name;
         const artistNames: string[] = [];

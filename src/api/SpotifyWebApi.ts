@@ -62,6 +62,10 @@ export class SpotifyWebApi {
             }
         });
 
+        if (response.status === 204) {
+            return null;
+        }
+
         return await response.json() as SpotifyGetCurrentlyPlayingResponse;
     }
 
