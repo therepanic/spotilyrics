@@ -12,8 +12,7 @@ import {LRCLibSearchResponse} from './api/response/LRCLibGetResponse';
 import {LRCLibApi} from './api/LRCLibApi';
 import TreeMap from 'ts-treemap';
 import {LyricsEntry} from './LyricsEntry';
-
-const ColorThief = require('colorthief');
+import {getAccentColorFromUrl} from "./ColorUtil";
 
 let panel: WebviewPanel;
 
@@ -296,50 +295,6 @@ async function updateLyrics() {
             }
         }
     }
-}
-
-async function getAccentColorFromUrl(imageUrl: string, targetLightness = 0.2): Promise<string> {
-    const res = await fetch(imageUrl);
-    const buffer = Buffer.from(await res.arrayBuffer());
-
-    const palette = await ColorThief.getPalette(buffer, 8);
-    let accent = palette[0];
-    return adjustLightnessRgbToHex(accent, targetLightness);
-}
-
-function adjustLightnessRgbToHex([r, g, b]: number[], targetL: number): string {
-    let R = r / 255, G = g / 255, B = b / 255;
-    const max = Math.max(R, G, B), min = Math.min(R, G, B);
-    let h = 0, s = 0, l = (max + min) / 2;
-    if (max !== min) {
-        const d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch (max) {
-            case R: h = (G - B) / d + (G < B ? 6 : 0); break;
-            case G: h = (B - R) / d + 2; break;
-            case B: h = (R - G) / d + 4; break;
-        }
-        h /= 6;
-    }
-    if (l > targetL) l = targetL;
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-    const p = 2 * l - q;
-    const hue2rgb = (p: number, q: number, t: number): number => {
-        if (t < 0) t += 1;
-        if (t > 1) t -= 1;
-        if (t < 1 / 6) return p + (q - p) * 6 * t;
-        if (t < 1 / 2) return q;
-        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-        return p;
-    };
-    const rr = Math.round(hue2rgb(p, q, h + 1 / 3) * 255);
-    const gg = Math.round(hue2rgb(p, q, h) * 255);
-    const bb = Math.round(hue2rgb(p, q, h - 1 / 3) * 255);
-    return rgbToHex(rr, gg, bb);
-}
-
-function rgbToHex(r: number, g: number, b: number): string {
-    return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1).toUpperCase()}`;
 }
 
 async function authorize(context: vscode.ExtensionContext) {
