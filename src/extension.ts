@@ -14,7 +14,7 @@ import TreeMap from 'ts-treemap';
 import {LyricsEntry} from './LyricsEntry';
 import {getAccentColorFromUrl} from "./ColorUtil";
 
-let panel: WebviewPanel | null;
+let panel: WebviewPanel;
 
 let preAuthState: SpotifyPreAuthState | null;
 let authState: SpotifyAuthState | null;
@@ -25,16 +25,20 @@ let pollingTimeout: NodeJS.Timeout | null;
 
 export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('spotilyrics.lyrics', async () => {
-        panel = vscode.window.createWebviewPanel(
-            'lyrics',
-            'Spotify Lyrics',
-            vscode.ViewColumn.Two,
-            {
-                enableScripts: true,
-                localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'media')],
-            }
-        );
-
+        if (panel) {
+            panel.reveal(vscode.ViewColumn.Two);
+            return;
+        } else {
+            panel = vscode.window.createWebviewPanel(
+                'lyrics',
+                'Spotify Lyrics',
+                vscode.ViewColumn.Two,
+                {
+                    enableScripts: true,
+                    localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'media')],
+                }
+            );
+        }
         await authorize(context);
         if (!authState) {
             await createServer(context);
@@ -64,14 +68,13 @@ export async function activate(context: vscode.ExtensionContext) {
                 vscode.env.openExternal(vscode.Uri.parse(await SpotifyWebApi.getAuthUrl(clientId, codeChallenge)));
             }
         });
-        panel.onDidChangeViewState(e => {
+        panel.onDidChangeViewState(async e => {
             if (!e.webviewPanel.visible) {
                 currentPlayingState = undefined;
             }
         });
         panel.onDidDispose(e => {
             deactivate();
-            panel = null;
         });
     }));
     context.subscriptions.push(vscode.commands.registerCommand('spotilyrics.logout', async () => {
@@ -114,17 +117,15 @@ async function printFrame(context: vscode.ExtensionContext) {
         cssName = './styles/lyricsStyle.css';
         scriptName = './scripts/lyricsScript.js';
     }
-    if (panel) {
-        const html = (await vscode.workspace.fs.readFile(vscode.Uri.joinPath(context.extensionUri, 'media', htmlName)))
-            .toString();
-        const cssUri = panel.webview.asWebviewUri(
-            vscode.Uri.joinPath(context.extensionUri, 'media', cssName)
-        );
-        const scriptUri = panel.webview.asWebviewUri(
-            vscode.Uri.joinPath(context.extensionUri, 'media', scriptName)
-        );
-        panel.webview.html = html.replace('styles.css', cssUri.toString()).replace('script.js', scriptUri.toString());
-    }
+    const html = (await vscode.workspace.fs.readFile(vscode.Uri.joinPath(context.extensionUri, 'media', htmlName)))
+        .toString();
+    const cssUri = panel.webview.asWebviewUri(
+        vscode.Uri.joinPath(context.extensionUri, 'media', cssName)
+    );
+    const scriptUri = panel.webview.asWebviewUri(
+        vscode.Uri.joinPath(context.extensionUri, 'media', scriptName)
+    );
+    panel.webview.html = html.replace('styles.css', cssUri.toString()).replace('script.js', scriptUri.toString());
 }
 
 function generateCodeVerifier(length = 49) {
@@ -226,9 +227,7 @@ async function updateLyrics() {
         const currentlyPlayingResponse = await SpotifyWebApi.getCurrentlyPlaying(authState.accessToken);
         if (!currentlyPlayingResponse) {
             currentPlayingState = undefined;
-            if (panel) {
-                panel.webview.postMessage({ command: 'clearLyrics', color: '#333333' });
-            }
+            panel.webview.postMessage({ command: 'clearLyrics', color: '#333333' });
             return;
         }
         const trackName: string = currentlyPlayingResponse.item.name;
@@ -278,9 +277,7 @@ async function updateLyrics() {
                 }
                 currentPlayingState = currentlyPlayingPoll
                 if (!currentPlayingState.synchronizedLyricsMap) {
-                    if (panel) {
-                        panel.webview.postMessage({ command: 'addLyrics', lyrics: currentPlayingState.plainLyricsStrs, color: await getAccentColorFromUrl(albumImages[0].url) });
-                    }
+                    panel.webview.postMessage({ command: 'addLyrics', lyrics: currentPlayingState.plainLyricsStrs, color: await getAccentColorFromUrl(albumImages[0].url) });
                 } else {
                     const value = currentPlayingState.synchronizedLyricsMap.floorEntry(currentlyPlayingResponse.progress_ms);
                     let pick: number = -1;
@@ -291,20 +288,16 @@ async function updateLyrics() {
                     for (const entry of currentPlayingState.synchronizedLyricsMap) {
                         synchronizedLyricsStrs.push({ id: entry[1].id, text: entry[1].text, pick: pick });
                     }
-                    if (panel) {
-                        panel.webview.postMessage({ command: 'addLyrics', lyrics: synchronizedLyricsStrs, color: await getAccentColorFromUrl(albumImages[0].url) });
-                    }
+                    panel.webview.postMessage({ command: 'addLyrics', lyrics: synchronizedLyricsStrs, color: await getAccentColorFromUrl(albumImages[0].url) });
                 }
             } else {
                 currentPlayingState = undefined;
-                if (panel) {
-                    panel.webview.postMessage({ command: 'clearLyrics', color: '#333333' });
-                }
+                panel.webview.postMessage({ command: 'clearLyrics', color: '#333333' });
             }
         } else {
             if (currentPlayingState.synchronizedLyricsMap) {
                 const value = currentPlayingState.synchronizedLyricsMap.floorEntry(currentlyPlayingResponse.progress_ms);
-                if (value && panel) {
+                if (value) {
                     panel.webview.postMessage({ command: 'pickLyrics', pick: value[1].id });
                 }
             }
