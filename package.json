@@ -4,7 +4,7 @@
     "description": "See synchronized Spotify lyrics inside VS Code while coding",
     "version": "1.0.0-SNAPSHOT",
     "engines": {
-        "vscode": "^1.39.0"
+        "vscode": "^1.80.0"
     },
     "categories": [
         "Other"
@@ -28,17 +28,17 @@
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "pretest": "npm run compile && npm run lint",
-        "lint": "eslint .",
+        "lint": "eslint . --max-warnings=0",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write .",
-        "format:check": "prettier --check 'src/**/*.{ts,js}'",
+        "format:check": "prettier --check .",
         "test": "vscode-test"
     },
     "devDependencies": {
         "@types/colorthief": "^2.6.0",
         "@types/mocha": "^10.0.10",
         "@types/node": "20.x",
-        "@types/vscode": "^1.39.0",
+        "@types/vscode": "^1.80.0",
         "@typescript-eslint/eslint-plugin": "^8.41.0",
         "@typescript-eslint/parser": "^8.41.0",
         "@vscode/test-cli": "^0.0.11",
