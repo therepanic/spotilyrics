@@ -1,30 +1,32 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="styles.css" />
-    <title>Spotilyrics Auth</title>
-</head>
-<body>
-<div class="login-container">
-    <h1 class="login-title">
-        Sign in to <span class="logo-bold">Spotilyrics</span>
-    </h1>
-    <div class="login-separator"></div>
-    <div class="field-group">
-        <label for="clientIdInput" class="field-label">CLIENT ID</label>
-        <input type="text" id="clientIdInput" class="field-input" placeholder="Client Id"/>
-        <p class="hint">
-            To synchronize with the Spotify player, you need to create a dev app
-            <a href="https://developer.spotify.com/dashboard/" target="_blank" class="link-hint">here</a><br>
-            Note: Use http://127.0.0.1:8000/callback as a Redirect URI
-        </p>
-    </div>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="styles.css" />
+        <title>Spotilyrics Auth</title>
+    </head>
+    <body>
+        <div class="login-container">
+            <h1 class="login-title">Sign in to <span class="logo-bold">Spotilyrics</span></h1>
+            <div class="login-separator"></div>
+            <div class="field-group">
+                <label for="clientIdInput" class="field-label">CLIENT ID</label>
+                <input type="text" id="clientIdInput" class="field-input" placeholder="Client Id" />
+                <p class="hint">
+                    To synchronize with the Spotify player, you need to create a dev app
+                    <a
+                        href="https://developer.spotify.com/dashboard/"
+                        target="_blank"
+                        class="link-hint"
+                        >here</a
+                    ><br />
+                    Note: Use http://127.0.0.1:8000/callback as a Redirect URI
+                </p>
+            </div>
 
-    <button id="signInButton" class="btn-continue">Sign in</button>
-</div>
-<script src="script.js"></script>
-</body>
-
+            <button id="signInButton" class="btn-continue">Sign in</button>
+        </div>
+        <script src="script.js"></script>
+    </body>
 </html>

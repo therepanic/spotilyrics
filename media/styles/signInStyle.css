@@ -1,4 +1,3 @@
-
 @font-face {
     font-family: 'CircularSpotifyText';
     src: url('../fonts/CircularSpotifyText-Black.otf') format('opentype');
@@ -10,7 +9,9 @@
     font-weight: 500;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
 }
 
@@ -52,7 +53,9 @@ body {
     border-radius: 2px;
     margin-bottom: 24px;
     width: 100%;
-    transition: width 0.3s ease, margin 0.3s ease;
+    transition:
+        width 0.3s ease,
+        margin 0.3s ease;
 }
 
 @media (min-width: 851px) {
@@ -101,7 +104,9 @@ body {
     border: 1px solid #555;
     border-radius: 4px;
     outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
     height: auto;
     line-height: 1.2;
 }
@@ -138,7 +143,9 @@ body {
     font-size: 18px;
     color: #000;
     cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
+    transition:
+        background 0.2s ease,
+        transform 0.1s ease;
 }
 
 .btn-continue:hover {

@@ -1,9 +1,8 @@
 import { SpotifyGetCurrentlyPlayingResponse } from './response/SpotifyGetCurrentlyPlayingResponse';
-import {SpotifyGetTokenResponse} from './response/SpotifyGetTokenResponse';
-import {SpotifyRefreshTokenResponse} from './response/SpotifyRefreshTokenResponse';
+import { SpotifyGetTokenResponse } from './response/SpotifyGetTokenResponse';
+import { SpotifyRefreshTokenResponse } from './response/SpotifyRefreshTokenResponse';
 
 export class SpotifyWebApi {
-
     static async getAuthUrl(clientId: string, codeChallenge: string) {
         const params = new URLSearchParams({
             response_type: 'code',
@@ -17,7 +16,13 @@ export class SpotifyWebApi {
         return `https://accounts.spotify.com/authorize?${params.toString()}`;
     }
 
-    static async getToken(clientId: string, codeVerifier: string, redirectUri: string, code: string, grantType: string) {
+    static async getToken(
+        clientId: string,
+        codeVerifier: string,
+        redirectUri: string,
+        code: string,
+        grantType: string
+    ) {
         const params = new URLSearchParams();
         params.append('grant_type', grantType);
         params.append('code', code);
@@ -33,13 +38,13 @@ export class SpotifyWebApi {
             body: params.toString(),
         });
 
-        return await response.json() as SpotifyGetTokenResponse;
+        return (await response.json()) as SpotifyGetTokenResponse;
     }
 
     static async refreshToken(refreshToken: string, clientId: string) {
         const params = new URLSearchParams();
         params.append('grant_type', 'refresh_token');
-        params.append('refresh_token', refreshToken)
+        params.append('refresh_token', refreshToken);
         params.append('client_id', clientId);
 
         const response = await fetch('https://accounts.spotify.com/api/token', {
@@ -50,7 +55,7 @@ export class SpotifyWebApi {
             body: params.toString(),
         });
 
-        return await response.json() as SpotifyRefreshTokenResponse;
+        return (await response.json()) as SpotifyRefreshTokenResponse;
     }
 
     static async getCurrentlyPlaying(accessToken: string) {
@@ -58,15 +63,14 @@ export class SpotifyWebApi {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': `Bearer ${accessToken}`
-            }
+                Authorization: `Bearer ${accessToken}`,
+            },
         });
 
         if (response.status === 204) {
             return null;
         }
 
-        return await response.json() as SpotifyGetCurrentlyPlayingResponse;
+        return (await response.json()) as SpotifyGetCurrentlyPlayingResponse;
     }
-
 }

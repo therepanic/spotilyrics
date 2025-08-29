@@ -1,4 +1,4 @@
 export interface LyricsEntry {
-  id: number;
-  text: string;
+    id: number;
+    text: string;
 }

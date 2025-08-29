@@ -5,7 +5,13 @@ export class SpotifyPreAuthState {
     readonly grantType: string;
     readonly redirectUri: string;
 
-    constructor(clientId: string, codeVerifier: string, codeChallenge: string, grantType: string, redirectUri: string) {
+    constructor(
+        clientId: string,
+        codeVerifier: string,
+        codeChallenge: string,
+        grantType: string,
+        redirectUri: string
+    ) {
         this.clientId = clientId;
         this.codeVerifier = codeVerifier;
         this.codeChallenge = codeChallenge;

@@ -1,18 +1,18 @@
 import * as vscode from 'vscode';
-import {WebviewPanel} from 'vscode';
+import { WebviewPanel } from 'vscode';
 import * as crypto from 'crypto';
-import {SpotifyWebApi} from './api/SpotifyWebApi';
+import { SpotifyWebApi } from './api/SpotifyWebApi';
 import * as http from 'http';
-import {IncomingMessage} from 'node:http';
-import {SpotifyPreAuthState} from './SpotifyPreAuthState';
-import {SpotifyAuthState} from './SpotifyAuthState';
-import {clearTimeout} from 'node:timers';
-import {SpotifyCurrentPlayingState} from './SpotifyCurrentPlayingState';
-import {LRCLibSearchResponse} from './api/response/LRCLibGetResponse';
-import {LRCLibApi} from './api/LRCLibApi';
+import { IncomingMessage } from 'node:http';
+import { SpotifyPreAuthState } from './SpotifyPreAuthState';
+import { SpotifyAuthState } from './SpotifyAuthState';
+import { clearTimeout } from 'node:timers';
+import { SpotifyCurrentPlayingState } from './SpotifyCurrentPlayingState';
+import { LRCLibSearchResponse } from './api/response/LRCLibGetResponse';
+import { LRCLibApi } from './api/LRCLibApi';
 import TreeMap from 'ts-treemap';
-import {LyricsEntry} from './LyricsEntry';
-import {getAccentColorFromUrl} from "./ColorUtil";
+import { LyricsEntry } from './LyricsEntry';
+import { getAccentColorFromUrl } from './ColorUtil';
 
 let panel: WebviewPanel;
 
@@ -24,70 +24,76 @@ let server: http.Server | null;
 let pollingTimeout: NodeJS.Timeout | null;
 
 export async function activate(context: vscode.ExtensionContext) {
-    context.subscriptions.push(vscode.commands.registerCommand('spotilyrics.lyrics', async () => {
-        if (panel) {
-            panel.reveal(vscode.ViewColumn.Two);
-            return;
-        } else {
-            panel = vscode.window.createWebviewPanel(
-                'lyrics',
-                'Spotify Lyrics',
-                vscode.ViewColumn.Two,
-                {
-                    enableScripts: true,
-                    localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'media')],
-                }
-            );
-        }
-        await authorize(context);
-        if (!authState) {
-            await createServer(context);
-        }
-        await printFrame(context);
-
-        panel.webview.onDidReceiveMessage(async message => {
-            if (message.command === 'signInClicked') {
-                const clientId = message.message;
-
-                const codeVerifier = generateCodeVerifier();
-                const sha256 = crypto.createHash('sha256').update(codeVerifier).digest();
-                const codeChallenge = sha256
-                    .toString('base64')
-                    .replace(/\+/g, '-')
-                    .replace(/\//g, '_')
-                    .replace(/=+$/, '');
-
-                preAuthState = new SpotifyPreAuthState(
-                    clientId,
-                    codeVerifier,
-                    codeChallenge,
-                    'authorization_code',
-                'http://127.0.0.1:8000/callback'
+    context.subscriptions.push(
+        vscode.commands.registerCommand('spotilyrics.lyrics', async () => {
+            if (panel) {
+                panel.reveal(vscode.ViewColumn.Two);
+                return;
+            } else {
+                panel = vscode.window.createWebviewPanel(
+                    'lyrics',
+                    'Spotify Lyrics',
+                    vscode.ViewColumn.Two,
+                    {
+                        enableScripts: true,
+                        localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'media')],
+                    }
                 );
-
-                vscode.env.openExternal(vscode.Uri.parse(await SpotifyWebApi.getAuthUrl(clientId, codeChallenge)));
             }
-        });
-        panel.onDidChangeViewState(async e => {
-            if (!e.webviewPanel.visible) {
-                currentPlayingState = undefined;
+            await authorize(context);
+            if (!authState) {
+                await createServer(context);
             }
-        });
-        panel.onDidDispose(e => {
-            deactivate();
-        });
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('spotilyrics.logout', async () => {
-        context.secrets.delete('clientId');
-        context.secrets.delete('accessToken');
-        context.secrets.delete('refreshToken');
-        context.secrets.delete('expiresIn');
-        await deactivate();
-        if (panel) {
-            await createServer(context);
             await printFrame(context);
-        }
-    }));
+
+            panel.webview.onDidReceiveMessage(async (message) => {
+                if (message.command === 'signInClicked') {
+                    const clientId = message.message;
+
+                    const codeVerifier = generateCodeVerifier();
+                    const sha256 = crypto.createHash('sha256').update(codeVerifier).digest();
+                    const codeChallenge = sha256
+                        .toString('base64')
+                        .replace(/\+/g, '-')
+                        .replace(/\//g, '_')
+                        .replace(/=+$/, '');
+
+                    preAuthState = new SpotifyPreAuthState(
+                        clientId,
+                        codeVerifier,
+                        codeChallenge,
+                        'authorization_code',
+                        'http://127.0.0.1:8000/callback'
+                    );
+
+                    vscode.env.openExternal(
+                        vscode.Uri.parse(await SpotifyWebApi.getAuthUrl(clientId, codeChallenge))
+                    );
+                }
+            });
+            panel.onDidChangeViewState(async (e) => {
+                if (!e.webviewPanel.visible) {
+                    currentPlayingState = undefined;
+                }
+            });
+            panel.onDidDispose((e) => {
+                deactivate();
+            });
+        })
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('spotilyrics.logout', async () => {
+            context.secrets.delete('clientId');
+            context.secrets.delete('accessToken');
+            context.secrets.delete('refreshToken');
+            context.secrets.delete('expiresIn');
+            await deactivate();
+            if (panel) {
+                await createServer(context);
+                await printFrame(context);
+            }
+        })
+    );
 }
 
 export async function deactivate() {
@@ -117,15 +123,20 @@ async function printFrame(context: vscode.ExtensionContext) {
         cssName = './styles/lyricsStyle.css';
         scriptName = './scripts/lyricsScript.js';
     }
-    const html = (await vscode.workspace.fs.readFile(vscode.Uri.joinPath(context.extensionUri, 'media', htmlName)))
-        .toString();
+    const html = (
+        await vscode.workspace.fs.readFile(
+            vscode.Uri.joinPath(context.extensionUri, 'media', htmlName)
+        )
+    ).toString();
     const cssUri = panel.webview.asWebviewUri(
         vscode.Uri.joinPath(context.extensionUri, 'media', cssName)
     );
     const scriptUri = panel.webview.asWebviewUri(
         vscode.Uri.joinPath(context.extensionUri, 'media', scriptName)
     );
-    panel.webview.html = html.replace('styles.css', cssUri.toString()).replace('script.js', scriptUri.toString());
+    panel.webview.html = html
+        .replace('styles.css', cssUri.toString())
+        .replace('script.js', scriptUri.toString());
 }
 
 function generateCodeVerifier(length = 49) {
@@ -146,8 +157,13 @@ async function createServer(context: vscode.ExtensionContext) {
             const code = parsedUrl.searchParams.get('code');
 
             if (code && preAuthState) {
-                const response = await SpotifyWebApi.getToken(preAuthState.clientId, preAuthState.codeVerifier,
-                    preAuthState.redirectUri, code, preAuthState.grantType);
+                const response = await SpotifyWebApi.getToken(
+                    preAuthState.clientId,
+                    preAuthState.codeVerifier,
+                    preAuthState.redirectUri,
+                    code,
+                    preAuthState.grantType
+                );
 
                 const expiresIn = Date.now() + response.expires_in * 1000;
 
@@ -156,7 +172,12 @@ async function createServer(context: vscode.ExtensionContext) {
                 context.secrets.store('refreshToken', response.refresh_token);
                 context.secrets.store('expiresIn', String(expiresIn));
 
-                authState = new SpotifyAuthState(preAuthState.clientId, response.access_token, response.refresh_token, expiresIn);
+                authState = new SpotifyAuthState(
+                    preAuthState.clientId,
+                    response.access_token,
+                    response.refresh_token,
+                    expiresIn
+                );
                 preAuthState = null;
 
                 await printFrame(context);
@@ -182,7 +203,6 @@ async function createServer(context: vscode.ExtensionContext) {
                     server.close();
                     server = null;
                 }
-
             } else {
                 res.statusCode = 400;
                 res.setHeader('Content-Type', 'text/plain');
@@ -201,7 +221,10 @@ async function pollSpotifyStat(context: vscode.ExtensionContext) {
     try {
         if (authState) {
             if (authState.expiresIn <= Date.now()) {
-                const response = await SpotifyWebApi.refreshToken(authState.refreshToken, authState.clientId);
+                const response = await SpotifyWebApi.refreshToken(
+                    authState.refreshToken,
+                    authState.clientId
+                );
 
                 const expiresIn = Date.now() + response.expires_in * 1000;
 
@@ -217,14 +240,15 @@ async function pollSpotifyStat(context: vscode.ExtensionContext) {
         }
     } catch (err) {
         console.error(`pollSpotifyStat error: ${err}`);
-        vscode.window.showErrorMessage(`pollSpotifyStat error: ${err}`)
+        vscode.window.showErrorMessage(`pollSpotifyStat error: ${err}`);
     }
-
 }
 
 async function updateLyrics() {
     if (authState) {
-        const currentlyPlayingResponse = await SpotifyWebApi.getCurrentlyPlaying(authState.accessToken);
+        const currentlyPlayingResponse = await SpotifyWebApi.getCurrentlyPlaying(
+            authState.accessToken
+        );
         if (!currentlyPlayingResponse) {
             currentPlayingState = undefined;
             panel.webview.postMessage({ command: 'clearLyrics', color: '#333333' });
@@ -240,24 +264,34 @@ async function updateLyrics() {
             artistNames.push(artist.name);
         }
         const artists: string = artistNames.join(' ');
-        if (!currentPlayingState || currentPlayingState.authors != artists || currentPlayingState.name != trackName) {
-            const getLyricsResponse: LRCLibSearchResponse = await LRCLibApi.get(trackName, artists, albumName, durationInS);
+        if (
+            !currentPlayingState ||
+            currentPlayingState.authors !== artists ||
+            currentPlayingState.name !== trackName
+        ) {
+            const getLyricsResponse: LRCLibSearchResponse = await LRCLibApi.get(
+                trackName,
+                artists,
+                albumName,
+                durationInS
+            );
             if (!getLyricsResponse.statusCode && !getLyricsResponse.instrumental) {
-                const currentlyPlayingPoll = new SpotifyCurrentPlayingState(
-                    trackName,
-                    artists
-                );
+                const currentlyPlayingPoll = new SpotifyCurrentPlayingState(trackName, artists);
                 if (getLyricsResponse.plainLyrics) {
                     const plainLyricsStrs: string[] = getLyricsResponse.plainLyrics
-                        .split(/\n/).map(s => s.trim()).filter(s => s !== '')
-                        .map(line => line + '\n');
+                        .split(/\n/)
+                        .map((s) => s.trim())
+                        .filter((s) => s !== '')
+                        .map((line) => line + '\n');
 
                     currentlyPlayingPoll.plainLyricsStrs = plainLyricsStrs;
                 }
                 // load synchronized lyrics in treemap
                 if (getLyricsResponse.syncedLyrics) {
                     const synchronizedLyricsMap = new TreeMap<number, LyricsEntry>();
-                    const synchronizedLyricsStrs: string[] = getLyricsResponse.syncedLyrics.split(/(?=\[\d{2}:\d{2}\.\d{2}\])/).filter(s => s.trim() !== '');
+                    const synchronizedLyricsStrs: string[] = getLyricsResponse.syncedLyrics
+                        .split(/(?=\[\d{2}:\d{2}\.\d{2}\])/)
+                        .filter((s) => s.trim() !== '');
                     let id: number = 0;
                     for (const lyricsStr of synchronizedLyricsStrs) {
                         const match = lyricsStr.match(/\[(\d{2}):(\d{2})\.(\d{2})\]\s*(.*)/);
@@ -269,26 +303,40 @@ async function updateLyrics() {
 
                             const timeMs = minutes * 60 * 1000 + seconds * 1000 + hundredths * 10;
 
-                            synchronizedLyricsMap.set(timeMs, {id: id, text: text});
+                            synchronizedLyricsMap.set(timeMs, { id: id, text: text });
                             id++;
                         }
                     }
                     currentlyPlayingPoll.synchronizedLyricsMap = synchronizedLyricsMap;
                 }
-                currentPlayingState = currentlyPlayingPoll
+                currentPlayingState = currentlyPlayingPoll;
                 if (!currentPlayingState.synchronizedLyricsMap) {
-                    panel.webview.postMessage({ command: 'addLyrics', lyrics: currentPlayingState.plainLyricsStrs, color: await getAccentColorFromUrl(albumImages[0].url) });
+                    panel.webview.postMessage({
+                        command: 'addLyrics',
+                        lyrics: currentPlayingState.plainLyricsStrs,
+                        color: await getAccentColorFromUrl(albumImages[0].url),
+                    });
                 } else {
-                    const value = currentPlayingState.synchronizedLyricsMap.floorEntry(currentlyPlayingResponse.progress_ms);
+                    const value = currentPlayingState.synchronizedLyricsMap.floorEntry(
+                        currentlyPlayingResponse.progress_ms
+                    );
                     let pick: number = -1;
                     if (value) {
                         pick = value[1].id;
                     }
                     const synchronizedLyricsStrs: object[] = [];
                     for (const entry of currentPlayingState.synchronizedLyricsMap) {
-                        synchronizedLyricsStrs.push({ id: entry[1].id, text: entry[1].text, pick: pick });
+                        synchronizedLyricsStrs.push({
+                            id: entry[1].id,
+                            text: entry[1].text,
+                            pick: pick,
+                        });
                     }
-                    panel.webview.postMessage({ command: 'addLyrics', lyrics: synchronizedLyricsStrs, color: await getAccentColorFromUrl(albumImages[0].url) });
+                    panel.webview.postMessage({
+                        command: 'addLyrics',
+                        lyrics: synchronizedLyricsStrs,
+                        color: await getAccentColorFromUrl(albumImages[0].url),
+                    });
                 }
             } else {
                 currentPlayingState = undefined;
@@ -296,7 +344,9 @@ async function updateLyrics() {
             }
         } else {
             if (currentPlayingState.synchronizedLyricsMap) {
-                const value = currentPlayingState.synchronizedLyricsMap.floorEntry(currentlyPlayingResponse.progress_ms);
+                const value = currentPlayingState.synchronizedLyricsMap.floorEntry(
+                    currentlyPlayingResponse.progress_ms
+                );
                 if (value) {
                     panel.webview.postMessage({ command: 'pickLyrics', pick: value[1].id });
                 }
@@ -312,12 +362,7 @@ async function authorize(context: vscode.ExtensionContext) {
     const expiresInStr = await context.secrets.get('expiresIn');
 
     if (clientId && accessToken && refreshToken && expiresInStr) {
-        authState = new SpotifyAuthState(
-            clientId,
-            accessToken,
-            refreshToken,
-            Number(expiresInStr)
-        );
+        authState = new SpotifyAuthState(clientId, accessToken, refreshToken, Number(expiresInStr));
 
         if (!pollingTimeout) {
             const loop = async () => {

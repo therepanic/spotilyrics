@@ -1,8 +1,12 @@
 let lastLyricsHash = '';
 let lastPickId = null;
 
-let lyricsNotFound = ['Looks like we don’t have the lyrics for this song yet.', 'Looks like we don’t have the lyrics for this song.',
-    'Hmm. We don\'t know the lyrics for this one.', 'You\'ll have to guess the lyrics for this one.'];
+let lyricsNotFound = [
+    'Looks like we don’t have the lyrics for this song yet.',
+    'Looks like we don’t have the lyrics for this song.',
+    "Hmm. We don't know the lyrics for this one.",
+    "You'll have to guess the lyrics for this one.",
+];
 
 function getRandomForLyricsNotFound() {
     const randomIndex = Math.floor(Math.random() * lyricsNotFound.length);
@@ -11,7 +15,7 @@ function getRandomForLyricsNotFound() {
 
 document.querySelector('.placeholder').textContent = getRandomForLyricsNotFound();
 
-window.addEventListener('message', event => {
+window.addEventListener('message', (event) => {
     const { command, lyrics, pick, color } = event.data;
 
     if (color) {
@@ -26,11 +30,9 @@ window.addEventListener('message', event => {
             lastLyricsHash = lyricsHash;
         }
         pickLyrics(pick);
-    }
-    else if (command === 'clearLyrics') {
+    } else if (command === 'clearLyrics') {
         clearLyrics();
-    }
-    else if (command === 'pickLyrics') {
+    } else if (command === 'pickLyrics') {
         pickLyrics(pick);
     }
 });
@@ -39,13 +41,13 @@ function renderLyrics(lyrics) {
     const box = document.querySelector('.box');
     box.innerHTML = '';
 
-    const allStrings = lyrics.every(item => typeof item === 'string');
+    const allStrings = lyrics.every((item) => typeof item === 'string');
     if (allStrings) {
         const note = document.createElement('div');
         note.className = 'lyrics-note';
-        note.textContent = 'These lyrics aren\'t synced to the song yet.';
+        note.textContent = "These lyrics aren't synced to the song yet.";
         box.appendChild(note);
-        lyrics.forEach(text => {
+        lyrics.forEach((text) => {
             const div = document.createElement('div');
             div.className = 'line';
             div.style.opacity = '1';
@@ -53,7 +55,7 @@ function renderLyrics(lyrics) {
             box.appendChild(div);
         });
     } else {
-        lyrics.forEach(line => {
+        lyrics.forEach((line) => {
             const div = document.createElement('div');
             div.className = 'line future';
             div.textContent = line.text || '♪';
@@ -76,14 +78,20 @@ function clearLyrics() {
 }
 
 function pickLyrics(id) {
-    if (id === lastPickId) return;
+    if (id === lastPickId) {
+        return;
+    }
     lastPickId = id;
 
     const lines = Array.from(document.querySelectorAll('.line'));
-    if (!lines.length) return;
+    if (!lines.length) {
+        return;
+    }
 
-    const pickedIndex = lines.findIndex(line => line.dataset.lyricsId === String(id));
-    if (pickedIndex === -1) return;
+    const pickedIndex = lines.findIndex((line) => line.dataset.lyricsId === String(id));
+    if (pickedIndex === -1) {
+        return;
+    }
 
     lines.forEach((line, index) => {
         line.classList.remove('past', 'current', 'future');
