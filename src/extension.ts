@@ -13,6 +13,7 @@ import { LRCLibApi } from './api/LRCLibApi';
 import TreeMap from 'ts-treemap';
 import { LyricsEntry } from './LyricsEntry';
 import { getAccentColorFromUrl } from './ColorUtil';
+import path from 'node:path';
 
 let panel: WebviewPanel;
 
@@ -39,6 +40,7 @@ export async function activate(context: vscode.ExtensionContext) {
                         localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'media')],
                     }
                 );
+                panel.iconPath = vscode.Uri.file(path.join(context.extensionPath, 'icon.png'));
             }
             await authorize(context);
             if (!authState) {
