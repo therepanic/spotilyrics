@@ -15,7 +15,7 @@ import { LyricsEntry } from './LyricsEntry';
 import { getAccentColorFromUrl } from './ColorUtil';
 import path from 'node:path';
 
-let panel: WebviewPanel;
+let panel: WebviewPanel | undefined;
 
 let preAuthState: SpotifyPreAuthState | null;
 let authState: SpotifyAuthState | null;
@@ -79,6 +79,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 }
             });
             panel.onDidDispose((e) => {
+                panel = undefined;
                 deactivate();
             });
         })
@@ -130,15 +131,17 @@ async function printFrame(context: vscode.ExtensionContext) {
             vscode.Uri.joinPath(context.extensionUri, 'media', htmlName)
         )
     ).toString();
-    const cssUri = panel.webview.asWebviewUri(
-        vscode.Uri.joinPath(context.extensionUri, 'media', cssName)
-    );
-    const scriptUri = panel.webview.asWebviewUri(
-        vscode.Uri.joinPath(context.extensionUri, 'media', scriptName)
-    );
-    panel.webview.html = html
-        .replace('styles.css', cssUri.toString())
-        .replace('script.js', scriptUri.toString());
+    if (panel) {
+        const cssUri = panel.webview.asWebviewUri(
+            vscode.Uri.joinPath(context.extensionUri, 'media', cssName)
+        );
+        const scriptUri = panel.webview.asWebviewUri(
+            vscode.Uri.joinPath(context.extensionUri, 'media', scriptName)
+        );
+        panel.webview.html = html
+            .replace('styles.css', cssUri.toString())
+            .replace('script.js', scriptUri.toString());
+    }
 }
 
 function generateCodeVerifier(length = 49) {
@@ -253,7 +256,9 @@ async function updateLyrics() {
         );
         if (!currentlyPlayingResponse) {
             currentPlayingState = undefined;
-            panel.webview.postMessage({ command: 'clearLyrics', color: '#333333' });
+            if (panel) {
+                panel.webview.postMessage({ command: 'clearLyrics', color: '#333333' });
+            }
             return;
         }
         const trackName: string = currentlyPlayingResponse.item.name;
@@ -313,11 +318,13 @@ async function updateLyrics() {
                 }
                 currentPlayingState = currentlyPlayingPoll;
                 if (!currentPlayingState.synchronizedLyricsMap) {
-                    panel.webview.postMessage({
-                        command: 'addLyrics',
-                        lyrics: currentPlayingState.plainLyricsStrs,
-                        color: await getAccentColorFromUrl(albumImages[0].url),
-                    });
+                    if (panel) {
+                        panel.webview.postMessage({
+                            command: 'addLyrics',
+                            lyrics: currentPlayingState.plainLyricsStrs,
+                            color: await getAccentColorFromUrl(albumImages[0].url),
+                        });
+                    }
                 } else {
                     const value = currentPlayingState.synchronizedLyricsMap.floorEntry(
                         currentlyPlayingResponse.progress_ms
@@ -334,22 +341,26 @@ async function updateLyrics() {
                             pick: pick,
                         });
                     }
-                    panel.webview.postMessage({
-                        command: 'addLyrics',
-                        lyrics: synchronizedLyricsStrs,
-                        color: await getAccentColorFromUrl(albumImages[0].url),
-                    });
+                    if (panel) {
+                        panel.webview.postMessage({
+                            command: 'addLyrics',
+                            lyrics: synchronizedLyricsStrs,
+                            color: await getAccentColorFromUrl(albumImages[0].url),
+                        });
+                    }
                 }
             } else {
                 currentPlayingState = undefined;
-                panel.webview.postMessage({ command: 'clearLyrics', color: '#333333' });
+                if (panel) {
+                    panel.webview.postMessage({ command: 'clearLyrics', color: '#333333' });
+                }
             }
         } else {
             if (currentPlayingState.synchronizedLyricsMap) {
                 const value = currentPlayingState.synchronizedLyricsMap.floorEntry(
                     currentlyPlayingResponse.progress_ms
                 );
-                if (value) {
+                if (value && panel) {
                     panel.webview.postMessage({ command: 'pickLyrics', pick: value[1].id });
                 }
             }
