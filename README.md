@@ -3,7 +3,7 @@
   <img src="logo.png" width="350" alt="Spotilyrics logo"/>
   <p><i>See synchronized Spotify lyrics inside VS Code while coding.</i></p>
   <p>
-    <a href="https://marketplace.visualstudio.com/vscode"><img src="https://img.shields.io/badge/VS%20Code-Extension-blue?style=flat&logo=visualstudiocode" /></a>
+    <a href="https://marketplace.visualstudio.com/items?itemName=therepanic.spotilyrics"><img src="https://img.shields.io/badge/VS%20Code-Extension-blue?style=flat&logo=visualstudiocode" /></a>
     <a href="https://developer.spotify.com/documentation/web-api"><img src="https://img.shields.io/badge/Spotify-API-1DB954?style=flat&logo=spotify" /></a>
     <a href="https://lrclib.net"><img src="https://img.shields.io/badge/Lyrics-LRClib-orange?style=flat" /></a>
     <a href="https://unlicense.org/"><img src="https://img.shields.io/badge/License-Unlicensed-red?style=flat" /></a>
@@ -28,7 +28,7 @@
 
 ## ⚡️ Installation
 
-1. Open **VS Code** → Extensions → search `Spotilyrics`.
+1. Open **VS Code** → Extensions → search `spotilyrics` or [install from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=therepanic.spotilyrics).
 
 2. Run the command:
 
