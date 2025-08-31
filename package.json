@@ -1,11 +1,12 @@
 {
     "name": "spotilyrics",
     "displayName": "Spotilyrics",
-    "description": "See synchronized Spotify lyrics inside VS Code while coding",
-    "version": "1.0.0-SNAPSHOT",
+    "description": "🎧 See synchronized Spotify lyrics inside VS Code while coding",
+    "version": "1.0.0",
     "engines": {
         "vscode": "^1.39.0"
     },
+    "icon": "icon.png",
     "categories": [
         "Other"
     ],
