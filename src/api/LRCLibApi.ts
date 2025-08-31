@@ -1,4 +1,5 @@
 import { LRCLibSearchResponse } from './response/LRCLibGetResponse';
+import fetch from 'node-fetch';
 
 export class LRCLibApi {
     static async get(

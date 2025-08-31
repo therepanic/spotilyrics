@@ -1,6 +1,7 @@
 import { SpotifyGetCurrentlyPlayingResponse } from './response/SpotifyGetCurrentlyPlayingResponse';
 import { SpotifyGetTokenResponse } from './response/SpotifyGetTokenResponse';
 import { SpotifyRefreshTokenResponse } from './response/SpotifyRefreshTokenResponse';
+import fetch from 'node-fetch';
 
 export class SpotifyWebApi {
     static async getAuthUrl(clientId: string, codeChallenge: string) {

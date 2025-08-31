@@ -1,4 +1,5 @@
 const ColorThief = require('colorthief');
+import fetch from 'node-fetch';
 
 const COLORS: string[] = [
     '#3c2b5e',
