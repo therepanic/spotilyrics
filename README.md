@@ -20,6 +20,7 @@
 - 🔑 Simple **one-time login** using your own Spotify Client ID.
 - 🚪 Quick logout command to reset session.
 - ⚡ Set a **maximum tracks cache size** for lyrics syncing.
+
 ---
 
 ## 📸 Demo

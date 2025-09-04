@@ -14,7 +14,7 @@ import TreeMap from 'ts-treemap';
 import { LyricsEntry } from './LyricsEntry';
 import { getAccentColorFromUrl } from './ColorUtil';
 import path from 'node:path';
-import { LRUCache } from 'lru-cache';
+import LRUCache from 'lru-cache';
 
 let panel: WebviewPanel | undefined;
 
