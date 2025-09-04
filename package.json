@@ -3,7 +3,7 @@
     "displayName": "spotilyrics",
     "description": "🎧 See synchronized Spotify lyrics inside VS Code while coding",
     "publisher": "therepanic",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "engines": {
         "vscode": "^1.66.0"
     },
@@ -13,7 +13,8 @@
     ],
     "activationEvents": [
         "onCommand:spotilyrics.lyrics",
-        "onCommand:spotilyrics.logout"
+        "onCommand:spotilyrics.logout",
+        "onCommand:spotilyrics.setTracksCacheMaxSize"
     ],
     "main": "./out/extension.js",
     "repository": {
@@ -21,6 +22,18 @@
         "url": "https://github.com/therepanic/spotilyrics.git"
     },
     "contributes": {
+        "configuration": {
+            "title": "spotilyrics",
+            "properties": {
+                "spotilyrics.tracksCacheMaxSize": {
+                    "type": "number",
+                    "default": 10,
+                    "minimum": 1,
+                    "maximum": 9007199254740991,
+                    "description": "Maximum cache size for tracks."
+                }
+            }
+        },
         "commands": [
             {
                 "command": "spotilyrics.lyrics",
@@ -29,6 +42,10 @@
             {
                 "command": "spotilyrics.logout",
                 "title": "Logout from Spotilyrics"
+            },
+            {
+                "command": "spotilyrics.setTracksCacheMaxSize",
+                "title": "Set Tracks Cache Max Size"
             }
         ]
     },
@@ -61,6 +78,7 @@
     },
     "dependencies": {
         "colorthief": "^2.6.0",
+        "lru-cache": "^11.2.0",
         "node-fetch": "^2.7.0",
         "ts-treemap": "^1.1.0",
         "tslib": "^2.8.1"

@@ -17,9 +17,8 @@ document.querySelector('.placeholder').textContent = getRandomForLyricsNotFound(
 
 window.addEventListener('message', (event) => {
     const { command, lyrics, pick, color } = event.data;
-
-    if (color) {
-        const body = document.body;
+    const body = document.body;
+    if (color && body.style.backgroundColor !== color) {
         body.style.backgroundColor = color;
     }
 

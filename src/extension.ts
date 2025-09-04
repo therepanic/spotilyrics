@@ -14,12 +14,14 @@ import TreeMap from 'ts-treemap';
 import { LyricsEntry } from './LyricsEntry';
 import { getAccentColorFromUrl } from './ColorUtil';
 import path from 'node:path';
+import { LRUCache } from 'lru-cache';
 
 let panel: WebviewPanel | undefined;
 
 let preAuthState: SpotifyPreAuthState | null;
 let authState: SpotifyAuthState | null;
 let currentPlayingState: SpotifyCurrentPlayingState | undefined;
+let tracksCache: LRUCache<string, SpotifyCurrentPlayingState>;
 
 let server: http.Server | null;
 let pollingTimeout: NodeJS.Timeout | null;
@@ -41,6 +43,17 @@ export async function activate(context: vscode.ExtensionContext) {
                     }
                 );
                 panel.iconPath = vscode.Uri.file(path.join(context.extensionPath, 'icon.png'));
+                const tracksCacheMaxSize: number = Number(
+                    vscode.workspace.getConfiguration('spotilyrics').get('tracksCacheMaxSize')
+                );
+                if (tracksCacheMaxSize) {
+                    tracksCache = new LRUCache({
+                        maxSize: tracksCacheMaxSize,
+                        sizeCalculation: () => 1,
+                    });
+                } else {
+                    tracksCache = new LRUCache({ maxSize: 10, sizeCalculation: () => 1 });
+                }
             }
             await authorize(context);
             if (!authState) {
@@ -95,6 +108,32 @@ export async function activate(context: vscode.ExtensionContext) {
                 await createServer(context);
                 await printFrame(context);
             }
+        })
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('spotilyrics.setTracksCacheMaxSize', async () => {
+            const MIN = 1,
+                MAX = Number.MAX_SAFE_INTEGER,
+                DEFAULT = 10;
+            const input = await vscode.window.showInputBox({
+                prompt: `Maximum tracks cache size. Enter an integer ${MIN}–${MAX}`,
+                value: String(DEFAULT),
+                validateInput: (v) => {
+                    if (!/^\d+$/.test(v)) {return 'Please enter an integer';}
+                    const n = Number(v);
+                    if (n < MIN) {return `Minimum is ${MIN}`;}
+                    if (n > MAX) {return `Maximum is ${MAX}`;}
+                    return null;
+                },
+                ignoreFocusOut: true,
+            });
+            if (!input) {return;}
+            const value = Math.max(MIN, Math.min(MAX, parseInt(input, 10)));
+            await vscode.workspace
+                .getConfiguration('spotilyrics')
+                .update('tracksCacheMaxSize', value, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(`Maximum tracks cache size set to ${value}`);
+            tracksCache = new LRUCache({ maxSize: value, sizeCalculation: () => 1 });
         })
     );
 }
@@ -276,6 +315,33 @@ async function updateLyrics() {
             currentPlayingState.authors !== artists ||
             currentPlayingState.name !== trackName
         ) {
+            const trackCache: SpotifyCurrentPlayingState | undefined = tracksCache.get(
+                makeTrackKey(trackName, artists)
+            );
+            if (trackCache) {
+                currentPlayingState = trackCache;
+                if (panel) {
+                    if (!trackCache.synchronizedLyricsMap) {
+                        panel.webview.postMessage({
+                            command: 'addLyrics',
+                            lyrics: trackCache.plainLyricsStrs,
+                            color: trackCache.coverColor,
+                        });
+                    } else if (trackCache.synchronizedLyricsMap) {
+                        panel.webview.postMessage({
+                            command: 'addLyrics',
+                            lyrics: trackCache.synchronizedLyricsStrs,
+                            color: trackCache.coverColor,
+                        });
+                    }
+                }
+            }
+        }
+        if (
+            !currentPlayingState ||
+            currentPlayingState.authors !== artists ||
+            currentPlayingState.name !== trackName
+        ) {
             const getLyricsResponse: LRCLibSearchResponse = await LRCLibApi.get(
                 trackName,
                 artists,
@@ -317,35 +383,35 @@ async function updateLyrics() {
                     currentlyPlayingPoll.synchronizedLyricsMap = synchronizedLyricsMap;
                 }
                 currentPlayingState = currentlyPlayingPoll;
+                const coverColor: string = await getAccentColorFromUrl(albumImages[0].url);
+                currentPlayingState.coverColor = coverColor;
+                tracksCache.set(
+                    makeTrackKey(currentPlayingState.name, currentPlayingState.authors),
+                    currentPlayingState
+                );
                 if (!currentPlayingState.synchronizedLyricsMap) {
                     if (panel) {
                         panel.webview.postMessage({
                             command: 'addLyrics',
                             lyrics: currentPlayingState.plainLyricsStrs,
-                            color: await getAccentColorFromUrl(albumImages[0].url),
+                            color: coverColor,
                         });
                     }
                 } else {
-                    const value = currentPlayingState.synchronizedLyricsMap.floorEntry(
-                        currentlyPlayingResponse.progress_ms
-                    );
-                    let pick: number = -1;
-                    if (value) {
-                        pick = value[1].id;
-                    }
                     const synchronizedLyricsStrs: object[] = [];
                     for (const entry of currentPlayingState.synchronizedLyricsMap) {
                         synchronizedLyricsStrs.push({
                             id: entry[1].id,
                             text: entry[1].text,
-                            pick: pick,
+                            pick: -1,
                         });
                     }
+                    currentPlayingState.synchronizedLyricsStrs = synchronizedLyricsStrs;
                     if (panel) {
                         panel.webview.postMessage({
                             command: 'addLyrics',
-                            lyrics: synchronizedLyricsStrs,
-                            color: await getAccentColorFromUrl(albumImages[0].url),
+                            lyrics: currentPlayingState.synchronizedLyricsStrs,
+                            color: coverColor,
                         });
                     }
                 }
@@ -361,11 +427,19 @@ async function updateLyrics() {
                     currentlyPlayingResponse.progress_ms
                 );
                 if (value && panel) {
-                    panel.webview.postMessage({ command: 'pickLyrics', pick: value[1].id });
+                    panel.webview.postMessage({
+                        command: 'pickLyrics',
+                        pick: value[1].id,
+                        color: currentPlayingState.coverColor,
+                    });
                 }
             }
         }
     }
+}
+
+function makeTrackKey(name: string, artists: string): string {
+    return `${name}__${artists}`;
 }
 
 async function authorize(context: vscode.ExtensionContext) {
