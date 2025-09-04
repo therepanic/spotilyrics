@@ -119,15 +119,23 @@ export async function activate(context: vscode.ExtensionContext) {
                 prompt: `Maximum tracks cache size. Enter an integer ${MIN}–${MAX}`,
                 value: String(DEFAULT),
                 validateInput: (v) => {
-                    if (!/^\d+$/.test(v)) {return 'Please enter an integer';}
+                    if (!/^\d+$/.test(v)) {
+                        return 'Please enter an integer';
+                    }
                     const n = Number(v);
-                    if (n < MIN) {return `Minimum is ${MIN}`;}
-                    if (n > MAX) {return `Maximum is ${MAX}`;}
+                    if (n < MIN) {
+                        return `Minimum is ${MIN}`;
+                    }
+                    if (n > MAX) {
+                        return `Maximum is ${MAX}`;
+                    }
                     return null;
                 },
                 ignoreFocusOut: true,
             });
-            if (!input) {return;}
+            if (!input) {
+                return;
+            }
             const value = Math.max(MIN, Math.min(MAX, parseInt(input, 10)));
             await vscode.workspace
                 .getConfiguration('spotilyrics')

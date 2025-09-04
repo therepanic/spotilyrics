@@ -19,7 +19,7 @@
 - 🖥️ Smooth **side panel view** – code on the left, lyrics on the right.
 - 🔑 Simple **one-time login** using your own Spotify Client ID.
 - 🚪 Quick logout command to reset session.
-
+- ⚡ Set a **maximum tracks cache size** for lyrics syncing.
 ---
 
 ## 📸 Demo
@@ -55,6 +55,7 @@ Show Spotify Lyrics via Spotilyrics
 
 - `Show Spotify Lyrics via Spotilyrics` (`spotilyrics.lyrics`) – open synced lyrics panel.
 - `Logout from Spotilyrics` (`spotilyrics.logout`) – clear session and re-auth when needed.
+- `Set Tracks Cache Max Size` (`spotilyrics.setTracksCacheMaxSize`) – configure the maximum number of tracks cached for lyrics.
 
 ---
 
