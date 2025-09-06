@@ -16,27 +16,26 @@ function getRandomForLyricsNotFound() {
 document.querySelector('.placeholder').textContent = getRandomForLyricsNotFound();
 
 window.addEventListener('message', (event) => {
-    const { command, lyrics, pick, color } = event.data;
+    const { command, lyrics, pick, color, textColor } = event.data;
     const body = document.body;
     if (color && body.style.backgroundColor !== color) {
         body.style.backgroundColor = color;
     }
-
     if (command === 'addLyrics') {
         const lyricsHash = JSON.stringify(lyrics);
         if (lyricsHash !== lastLyricsHash) {
-            renderLyrics(lyrics);
+            renderLyrics(lyrics, textColor);
             lastLyricsHash = lyricsHash;
         }
-        pickLyrics(pick);
+        pickLyrics(pick, textColor);
     } else if (command === 'clearLyrics') {
         clearLyrics();
     } else if (command === 'pickLyrics') {
-        pickLyrics(pick);
+        pickLyrics(pick, textColor);
     }
 });
 
-function renderLyrics(lyrics) {
+function renderLyrics(lyrics, textColor) {
     const box = document.querySelector('.box');
     box.innerHTML = '';
 
@@ -44,6 +43,7 @@ function renderLyrics(lyrics) {
     if (allStrings) {
         const note = document.createElement('div');
         note.className = 'lyrics-note';
+        note.style.color = textColor;
         note.textContent = "These lyrics aren't synced to the song yet.";
         box.appendChild(note);
         lyrics.forEach((text) => {
@@ -56,6 +56,7 @@ function renderLyrics(lyrics) {
     } else {
         lyrics.forEach((line) => {
             const div = document.createElement('div');
+            div.style.color = textColor;
             div.className = 'line future';
             div.textContent = line.text || '♪';
             div.dataset.lyricsId = line.id;
@@ -76,10 +77,11 @@ function clearLyrics() {
     lastPickId = null;
 }
 
-function pickLyrics(id) {
+function pickLyrics(id, textColor) {
     if (id === lastPickId) {
         return;
     }
+    console.log(textColor);
     lastPickId = id;
 
     const lines = Array.from(document.querySelectorAll('.line'));
@@ -97,10 +99,13 @@ function pickLyrics(id) {
 
         if (index < pickedIndex) {
             line.classList.add('past');
+            line.style.color = textColor;
         } else if (index === pickedIndex) {
             line.classList.add('current');
+            line.style.color = 'white';
         } else {
             line.classList.add('future');
+            line.style.color = textColor;
         }
     });
 

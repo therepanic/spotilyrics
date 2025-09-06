@@ -12,7 +12,7 @@ import { LRCLibSearchResponse } from './api/response/LRCLibGetResponse';
 import { LRCLibApi } from './api/LRCLibApi';
 import TreeMap from 'ts-treemap';
 import { LyricsEntry } from './LyricsEntry';
-import { getAccentColorFromUrl } from './ColorUtil';
+import { generateTextColor, getAccentColorFromUrl } from './ColorUtil';
 import path from 'node:path';
 import LRUCache from 'lru-cache';
 
@@ -334,12 +334,14 @@ async function updateLyrics() {
                             command: 'addLyrics',
                             lyrics: trackCache.plainLyricsStrs,
                             color: trackCache.coverColor,
+                            textColor: '#' + trackCache.textColor,
                         });
                     } else if (trackCache.synchronizedLyricsMap) {
                         panel.webview.postMessage({
                             command: 'addLyrics',
                             lyrics: trackCache.synchronizedLyricsStrs,
                             color: trackCache.coverColor,
+                            textColor: '#' + trackCache.textColor,
                         });
                     }
                 }
@@ -393,6 +395,7 @@ async function updateLyrics() {
                 currentPlayingState = currentlyPlayingPoll;
                 const coverColor: string = await getAccentColorFromUrl(albumImages[0].url);
                 currentPlayingState.coverColor = coverColor;
+                currentPlayingState.textColor = generateTextColor(currentPlayingState.coverColor);
                 tracksCache.set(
                     makeTrackKey(currentPlayingState.name, currentPlayingState.authors),
                     currentPlayingState
@@ -402,7 +405,8 @@ async function updateLyrics() {
                         panel.webview.postMessage({
                             command: 'addLyrics',
                             lyrics: currentPlayingState.plainLyricsStrs,
-                            color: coverColor,
+                            color: currentPlayingState.coverColor,
+                            textColor: '#' + currentPlayingState.textColor,
                         });
                     }
                 } else {
@@ -419,7 +423,8 @@ async function updateLyrics() {
                         panel.webview.postMessage({
                             command: 'addLyrics',
                             lyrics: currentPlayingState.synchronizedLyricsStrs,
-                            color: coverColor,
+                            color: currentPlayingState.coverColor,
+                            textColor: '#' + currentPlayingState.textColor,
                         });
                     }
                 }
@@ -439,6 +444,7 @@ async function updateLyrics() {
                         command: 'pickLyrics',
                         pick: value[1].id,
                         color: currentPlayingState.coverColor,
+                        textColor: '#' + currentPlayingState.textColor,
                     });
                 }
             }

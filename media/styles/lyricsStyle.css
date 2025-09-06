@@ -62,7 +62,7 @@ body {
 .lyrics-note {
     font-weight: 300;
     font-size: 15px;
-    opacity: 0.6;
+    opacity: 0.9;
     margin-bottom: 25px;
 }
 
@@ -87,5 +87,5 @@ body {
     opacity: 1;
 }
 .line.future {
-    opacity: 0.75;
+    opacity: 0.9;
 }

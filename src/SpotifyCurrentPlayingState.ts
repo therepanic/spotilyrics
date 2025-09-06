@@ -7,6 +7,7 @@ export class SpotifyCurrentPlayingState {
     plainLyricsStrs?: string[];
     synchronizedLyricsStrs?: object[];
     coverColor?: string;
+    textColor?: string;
     synchronizedLyricsMap?: TreeMap<number, LyricsEntry>;
 
     constructor(

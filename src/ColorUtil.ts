@@ -306,3 +306,94 @@ export async function getAccentColorFromUrl(
         return '#303030';
     }
 }
+function rgbToHex([r, g, b]: [number, number, number]): string {
+    const toHex = (n: number) =>
+        Math.max(0, Math.min(255, Math.round(n)))
+            .toString(16)
+            .padStart(2, '0');
+    return `${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function rgbToHsv([r, g, b]: [number, number, number]): [number, number, number] {
+    const r1 = r / 255,
+        g1 = g / 255,
+        b1 = b / 255;
+    const max = Math.max(r1, g1, b1),
+        min = Math.min(r1, g1, b1);
+    const d = max - min;
+    const v = max;
+    const s = max === 0 ? 0 : d / max;
+    let h = 0;
+    if (d !== 0) {
+        switch (max) {
+            case r1:
+                h = (g1 - b1) / d + (g1 < b1 ? 6 : 0);
+                break;
+            case g1:
+                h = (b1 - r1) / d + 2;
+                break;
+            default:
+                h = (r1 - g1) / d + 4;
+        }
+        h /= 6;
+    }
+    return [h, s, v];
+}
+
+function hsvToRgb([h, s, v]: [number, number, number]): [number, number, number] {
+    const i = Math.floor(h * 6);
+    const f = h * 6 - i;
+    const p = v * (1 - s);
+    const q = v * (1 - s * f);
+    const t = v * (1 - s * (1 - f));
+    let r = 0,
+        g = 0,
+        b = 0;
+    switch (i % 6) {
+        case 0:
+            r = v;
+            g = t;
+            b = p;
+            break;
+        case 1:
+            r = q;
+            g = v;
+            b = p;
+            break;
+        case 2:
+            r = p;
+            g = v;
+            b = t;
+            break;
+        case 3:
+            r = p;
+            g = q;
+            b = v;
+            break;
+        case 4:
+            r = t;
+            g = p;
+            b = v;
+            break;
+        case 5:
+            r = v;
+            g = p;
+            b = q;
+            break;
+    }
+    return [r * 255, g * 255, b * 255].map((x) => Math.round(x)) as [number, number, number];
+}
+
+function clamp01(x: number): number {
+    return Math.max(0, Math.min(1, x));
+}
+
+export function generateTextColor(hexCover: string, hShiftDeg = 12, coeff = 0.81): string {
+    const rgbCover = hexToRgb(hexCover);
+    const [h, s, v] = rgbToHsv(rgbCover);
+    const newH = (h + hShiftDeg / 360) % 1;
+    const newS = clamp01(v * coeff);
+    const newV = 1;
+    const rgbText = hsvToRgb([newH, newS, newV]);
+    return rgbToHex(rgbText);
+}
