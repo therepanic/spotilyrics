@@ -3,7 +3,7 @@
     "displayName": "spotilyrics",
     "description": "🎧 See synchronized Spotify lyrics inside VS Code while coding",
     "publisher": "therepanic",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "engines": {
         "vscode": "^1.66.0"
     },
