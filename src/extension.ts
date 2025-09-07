@@ -8,13 +8,13 @@ import { SpotifyPreAuthState } from './SpotifyPreAuthState';
 import { SpotifyAuthState } from './SpotifyAuthState';
 import { clearTimeout } from 'node:timers';
 import { SpotifyCurrentPlayingState } from './SpotifyCurrentPlayingState';
-import { LRCLibSearchResponse } from './api/response/LRCLibGetResponse';
-import { LRCLibApi } from './api/LRCLibApi';
 import TreeMap from 'ts-treemap';
 import { LyricsEntry } from './LyricsEntry';
 import { generateTextColor, getAccentColorFromUrl } from './ColorUtil';
 import path from 'node:path';
 import LRUCache from 'lru-cache';
+import { LRCLibLyricsProvider } from './provider/LRCLibLyricsProvider';
+import { LyricsProvider } from './provider/LyricsProvider';
 
 let panel: WebviewPanel | undefined;
 
@@ -25,6 +25,8 @@ let tracksCache: LRUCache<string, SpotifyCurrentPlayingState>;
 
 let server: http.Server | null;
 let pollingTimeout: NodeJS.Timeout | null;
+
+const provider: LyricsProvider = new LRCLibLyricsProvider();
 
 export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
@@ -352,16 +354,16 @@ async function updateLyrics() {
             currentPlayingState.authors !== artists ||
             currentPlayingState.name !== trackName
         ) {
-            const getLyricsResponse: LRCLibSearchResponse = await LRCLibApi.get(
+            const lyricsResult = await provider.getLyrics(
                 trackName,
                 artists,
                 albumName,
                 durationInS
             );
-            if (!getLyricsResponse.statusCode && !getLyricsResponse.instrumental) {
+            if (lyricsResult && !lyricsResult.instrumental) {
                 const currentlyPlayingPoll = new SpotifyCurrentPlayingState(trackName, artists);
-                if (getLyricsResponse.plainLyrics) {
-                    const plainLyricsStrs: string[] = getLyricsResponse.plainLyrics
+                if (lyricsResult.plainLyrics) {
+                    const plainLyricsStrs: string[] = lyricsResult.plainLyrics
                         .split(/\n/)
                         .map((s) => s.trim())
                         .filter((s) => s !== '')
@@ -370,9 +372,9 @@ async function updateLyrics() {
                     currentlyPlayingPoll.plainLyricsStrs = plainLyricsStrs;
                 }
                 // load synchronized lyrics in treemap
-                if (getLyricsResponse.syncedLyrics) {
+                if (lyricsResult.syncedLyrics) {
                     const synchronizedLyricsMap = new TreeMap<number, LyricsEntry>();
-                    const synchronizedLyricsStrs: string[] = getLyricsResponse.syncedLyrics
+                    const synchronizedLyricsStrs: string[] = lyricsResult.syncedLyrics
                         .split(/(?=\[\d{2}:\d{2}\.\d{2}\])/)
                         .filter((s) => s.trim() !== '');
                     let id: number = 0;
