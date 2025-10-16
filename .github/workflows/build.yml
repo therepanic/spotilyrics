@@ -1,0 +1,47 @@
+name: Build VSCode Extension (multi-platform)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [20]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+
+      - name: Install dependencies (including dev)
+        run: npm ci
+
+      - name: Compile TypeScript
+        run: npm run compile
+
+      - name: Package VSIX
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            npx @vscode/vsce package --target win32-x64
+          elif [ "${{ runner.os }}" = "Linux" ]; then
+            npx @vscode/vsce package --target linux-x64
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            npx @vscode/vsce package --target darwin-arm64
+          fi
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extension-${{ runner.os }}
+          path: '*.vsix'
