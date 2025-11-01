@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest, macos-15-intel]
         node: [20]
 
     steps:
@@ -32,13 +32,20 @@ jobs:
       - name: Package VSIX
         shell: bash
         run: |
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            npx @vscode/vsce package --target win32-x64
-          elif [ "${{ runner.os }}" = "Linux" ]; then
-            npx @vscode/vsce package --target linux-x64
-          elif [ "${{ runner.os }}" = "macOS" ]; then
-            npx @vscode/vsce package --target darwin-arm64
-          fi
+          case "${{ matrix.os }}" in
+            windows-latest)
+              npx @vscode/vsce package --target win32-x64
+              ;;
+            ubuntu-latest)
+              npx @vscode/vsce package --target linux-x64
+              ;;
+            macos-latest)
+              npx @vscode/vsce package --target darwin-arm64
+              ;;
+            macos-15-intel)
+              npx @vscode/vsce package --target darwin-x64
+              ;;
+          esac
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
