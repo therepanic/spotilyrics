@@ -80,11 +80,17 @@ export async function activate(context: vscode.ExtensionContext) {
                         codeVerifier,
                         codeChallenge,
                         'authorization_code',
-                        'http://127.0.0.1:8000/callback'
+                        `http://127.0.0.1:${vscode.workspace.getConfiguration('spotilyrics').get('port')}/callback`
                     );
 
                     vscode.env.openExternal(
-                        vscode.Uri.parse(await SpotifyWebApi.getAuthUrl(clientId, codeChallenge))
+                        vscode.Uri.parse(
+                            await SpotifyWebApi.getAuthUrl(
+                                vscode.workspace.getConfiguration('spotilyrics').get('port')!,
+                                clientId,
+                                codeChallenge
+                            )
+                        )
                     );
                 }
             });
@@ -282,7 +288,7 @@ async function createServer(context: vscode.ExtensionContext) {
             res.end('Not Found');
         }
     });
-    server.listen(8000);
+    server.listen(vscode.workspace.getConfiguration('spotilyrics').get('port'));
 }
 
 async function pollSpotifyStat(context: vscode.ExtensionContext) {

@@ -4,12 +4,12 @@ import { SpotifyRefreshTokenResponse } from './response/SpotifyRefreshTokenRespo
 import fetch from 'node-fetch';
 
 export class SpotifyWebApi {
-    static async getAuthUrl(clientId: string, codeChallenge: string) {
+    static async getAuthUrl(port: number, clientId: string, codeChallenge: string) {
         const params = new URLSearchParams({
             response_type: 'code',
             client_id: clientId,
             scope: 'user-read-currently-playing',
-            redirect_uri: 'http://127.0.0.1:8000/callback',
+            redirect_uri: `http://127.0.0.1:${port}/callback`,
             code_challenge: codeChallenge,
             code_challenge_method: 'S256',
         });

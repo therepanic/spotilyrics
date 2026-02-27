@@ -26,6 +26,13 @@
         "configuration": {
             "title": "spotilyrics",
             "properties": {
+                "spotilyrics.port": {
+                    "type": "number",
+                    "default": 8000,
+                    "minimum": 1024,
+                    "maximum": 65535,
+                    "description": "Port used for the Spotify OAuth callback."
+                },
                 "spotilyrics.tracksCacheMaxSize": {
                     "type": "number",
                     "default": 10,
