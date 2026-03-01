@@ -45,7 +45,8 @@ Show Spotify Lyrics via Spotilyrics
 
 1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
 2. Create an app → copy **Client ID**.
-3. **Important:** set the **Redirect URI** for your app to: `http://127.0.0.1:8000/callback`
+3. **Important:** set the **Redirect URI** for your app to: `http://127.0.0.1:<port>/callback` (default: `8000`).  
+   You can change the port in settings (`spotilyrics.port`) or via the command `Set Spotify OAuth Callback Port`.
 4. Run the `Show Spotify Lyrics via Spotilyrics` command.
 5. Paste your **Client ID** in the panel and log in.
 6. Enjoy synced lyrics while coding! 🎶
@@ -60,6 +61,7 @@ Show Spotify Lyrics via Spotilyrics
 - `Toggle Mobile Mode` (`spotilyrics.toggleMobileMode`) – switch between normal and mobile mode.
 - `Logout from Spotilyrics` (`spotilyrics.logout`) – clear session and re-auth when needed.
 - `Set Tracks Cache Max Size` (`spotilyrics.setTracksCacheMaxSize`) – configure the maximum number of tracks cached for lyrics.
+- `Set Spotify OAuth Callback Port` (`spotilyrics.setPort`) – set the local callback port used for Spotify OAuth.
 
 ---
 
