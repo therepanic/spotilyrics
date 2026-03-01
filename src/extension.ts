@@ -166,6 +166,43 @@ export async function activate(context: vscode.ExtensionContext) {
             }
         })
     );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('spotilyrics.setPort', async () => {
+            const MIN = 1024,
+                MAX = 65535,
+                DEFAULT = 8000;
+            const config = vscode.workspace.getConfiguration('spotilyrics');
+            const input = await vscode.window.showInputBox({
+                prompt: `Port used for the Spotify OAuth callback. Enter an integer ${MIN}–${MAX}`,
+                value: String(config.get<number>('port') ?? DEFAULT),
+                validateInput: (v) => {
+                    if (!/^\d+$/.test(v)) {
+                        return 'Please enter an integer';
+                    }
+                    const n = Number(v);
+                    if (n < MIN) {
+                        return `Minimum is ${MIN}`;
+                    }
+                    if (n > MAX) {
+                        return `Maximum is ${MAX}`;
+                    }
+                    return null;
+                },
+                ignoreFocusOut: true,
+            });
+            if (!input) {
+                return;
+            }
+            const value = Math.max(MIN, Math.min(MAX, parseInt(input, 10)));
+            await config.update('port', value, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(`Spotify OAuth callback port set to ${value}`);
+            if (panel) {
+                await deactivate();
+                await createServer(context);
+                await printFrame(context);
+            }
+        })
+    );
 }
 
 export async function deactivate() {
@@ -207,7 +244,9 @@ async function printFrame(context: vscode.ExtensionContext) {
         const scriptUri = panel.webview.asWebviewUri(
             vscode.Uri.joinPath(context.extensionUri, 'media', scriptName)
         );
+        const port = vscode.workspace.getConfiguration('spotilyrics').get<number>('port') ?? 8000;
         panel.webview.html = html
+            .replace('{{PORT}}', String(port))
             .replace('styles.css', cssUri.toString())
             .replace('script.js', scriptUri.toString());
     }

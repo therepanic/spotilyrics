@@ -3,7 +3,7 @@
     "displayName": "spotilyrics",
     "description": "🎧 See synchronized Spotify lyrics inside VS Code while coding",
     "publisher": "therepanic",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "engines": {
         "vscode": "^1.66.0"
     },
@@ -15,7 +15,8 @@
         "onCommand:spotilyrics.lyrics",
         "onCommand:spotilyrics.logout",
         "onCommand:spotilyrics.setTracksCacheMaxSize",
-        "onCommand:spotilyrics.toggleMobileMode"
+        "onCommand:spotilyrics.toggleMobileMode",
+        "onCommand:spotilyrics.setPort"
     ],
     "main": "./out/extension.js",
     "repository": {
@@ -63,6 +64,10 @@
             {
                 "command": "spotilyrics.toggleMobileMode",
                 "title": "Toggle Mobile Mode"
+            },
+            {
+                "command": "spotilyrics.setPort",
+                "title": "Set Spotify OAuth Callback Port"
             }
         ]
     },
