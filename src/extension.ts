@@ -196,11 +196,27 @@ export async function activate(context: vscode.ExtensionContext) {
             const value = Math.max(MIN, Math.min(MAX, parseInt(input, 10)));
             await config.update('port', value, vscode.ConfigurationTarget.Global);
             vscode.window.showInformationMessage(`Spotify OAuth callback port set to ${value}`);
-            if (panel) {
-                await deactivate();
-                await createServer(context);
-                await printFrame(context);
+            if (!authState) {
+                await authorize(context);
             }
+            if (authState) {
+                if (panel) {
+                    await printFrame(context);
+                }
+                return;
+            }
+            if (!panel) {
+                return;
+            }
+            if (!server && !preAuthState) {
+                return;
+            }
+            if (server) {
+                server.close();
+                server = null;
+            }
+            await createServer(context);
+            await printFrame(context);
         })
     );
 }
