@@ -45,6 +45,16 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Mobile mode: black unplayed lines, white played lines."
+                },
+                "spotilyrics.hideSongTitle": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Don't show the song title in the panel title."
+                },
+                "spotilyrics.hideSongIcon": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Don't show the album icon on the panel card."
                 }
             }
         },

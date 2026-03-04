@@ -393,6 +393,16 @@ async function updateLyrics() {
         const albumImages = currentlyPlayingResponse.item.album.images;
         const durationInMs: number = currentlyPlayingResponse.item.duration_ms;
         const durationInS: number = Math.floor(durationInMs / 1000);
+
+        if (panel) {
+            if (!vscode.workspace.getConfiguration('spotilyrics').get('hideSongTitle')) {
+                panel.title = trackName;
+            }
+            if (!vscode.workspace.getConfiguration('spotilyrics').get('hideSongIcon')) {
+                panel.iconPath = vscode.Uri.parse(albumImages[0].url);
+            }
+        }
+
         for (const artist of currentlyPlayingResponse.item.artists) {
             artistNames.push(artist.name);
         }
