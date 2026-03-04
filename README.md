@@ -66,6 +66,9 @@ Show Spotify Lyrics via Spotilyrics
 - `Logout from Spotilyrics` (`spotilyrics.logout`) – clear session and re-auth when needed.
 - `Set Tracks Cache Max Size` (`spotilyrics.setTracksCacheMaxSize`) – configure the maximum number of tracks cached for lyrics.
 - `Set Spotify OAuth Callback Port` (`spotilyrics.setPort`) – set the local callback port used for Spotify OAuth.
+- `Toggle Song Title` (`spotilyrics.songTitle`) – toggle the song title in the lyrics panel.
+- `Toggle Song Icon` (`spotilyrics.songIcon`) – toggle the song icon in the lyrics panel.
+- `Toggle Song Artists` (`spotilyrics.songArtists`) – toggle the song artists in the lyrics panel.
 
 ---
 

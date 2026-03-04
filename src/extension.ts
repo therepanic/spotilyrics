@@ -168,7 +168,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 `Mobile mode ${newValue ? 'enabled' : 'disabled'}`
             );
             if (panel && currentPlayingState) {
-                await updateLyrics();
+                await updateLyrics(context);
             }
         })
     );
@@ -223,6 +223,37 @@ export async function activate(context: vscode.ExtensionContext) {
             }
             await createServer(context);
             await printFrame(context);
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('spotilyrics.songTitle', async () => {
+            const config = vscode.workspace.getConfiguration('spotilyrics');
+            const value = !config.get('songTitle');
+            await config.update('songTitle', value, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(
+                `Song title has been ${value ? 'hidden' : 'shown'}`
+            );
+        })
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('spotilyrics.songIcon', async () => {
+            const config = vscode.workspace.getConfiguration('spotilyrics');
+            const value = !config.get('songIcon');
+            await config.update('songIcon', value, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(
+                `Song icon has been ${value ? 'hidden' : 'shown'}`
+            );
+        })
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('spotilyrics.songArtists', async () => {
+            const config = vscode.workspace.getConfiguration('spotilyrics');
+            const value = !config.get('songArtists');
+            await config.update('songArtists', value, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(
+                `Song artists has been ${value ? 'hidden' : 'shown'}`
+            );
         })
     );
 }
@@ -371,7 +402,7 @@ async function pollSpotifyStat(context: vscode.ExtensionContext) {
                 authState.accessToken = response.access_token;
                 authState.expiresIn = expiresIn;
             }
-            await updateLyrics();
+            await updateLyrics(context);
         }
     } catch (err) {
         console.error(`pollSpotifyStat error: ${err}`);
@@ -379,7 +410,36 @@ async function pollSpotifyStat(context: vscode.ExtensionContext) {
     }
 }
 
-async function updateLyrics() {
+function updatePanelMeta(
+    context: vscode.ExtensionContext,
+    artistsNames: string,
+    trackName: string,
+    imageUrl: string
+) {
+    if (!panel) {
+        return;
+    }
+
+    const songTitle = vscode.workspace.getConfiguration('spotilyrics').get('songTitle');
+    const songArtists = vscode.workspace.getConfiguration('spotilyrics').get('songArtists');
+    const songIcon = vscode.workspace.getConfiguration('spotilyrics').get('songIcon');
+
+    if (songTitle && songArtists) {
+        panel.title = 'Spotify Lyrics';
+    } else if (!songTitle && songArtists) {
+        panel.title = trackName;
+    } else if (songTitle && !songArtists) {
+        panel.title = artistsNames;
+    } else {
+        panel.title = `${artistsNames} - ${trackName}`;
+    }
+
+    panel.iconPath = songIcon
+        ? vscode.Uri.file(path.join(context.extensionPath, 'icon.png'))
+        : vscode.Uri.parse(imageUrl);
+}
+
+async function updateLyrics(context: vscode.ExtensionContext) {
     if (authState) {
         const mobileMode: boolean =
             vscode.workspace.getConfiguration('spotilyrics').get('mobileMode') ?? false;
@@ -395,14 +455,15 @@ async function updateLyrics() {
         }
         const trackName: string = currentlyPlayingResponse.item.name;
         const albumName: string = currentlyPlayingResponse.item.album.name;
-        const artistNames: string[] = [];
+        const artistsNames: string[] = currentlyPlayingResponse.item.artists.map(
+            (artist) => artist.name
+        );
         const albumImages = currentlyPlayingResponse.item.album.images;
         const durationInMs: number = currentlyPlayingResponse.item.duration_ms;
         const durationInS: number = Math.floor(durationInMs / 1000);
-        for (const artist of currentlyPlayingResponse.item.artists) {
-            artistNames.push(artist.name);
-        }
-        const artists: string = artistNames.join(' ');
+        const artists: string = artistsNames.join(', ');
+
+        updatePanelMeta(context, artists, trackName, albumImages[albumImages.length - 1].url);
         if (
             !currentPlayingState ||
             currentPlayingState.authors !== artists ||

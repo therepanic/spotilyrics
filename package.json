@@ -16,7 +16,10 @@
         "onCommand:spotilyrics.logout",
         "onCommand:spotilyrics.setTracksCacheMaxSize",
         "onCommand:spotilyrics.toggleMobileMode",
-        "onCommand:spotilyrics.setPort"
+        "onCommand:spotilyrics.setPort",
+        "onCommand:spotilyrics.songTitle",
+        "onCommand:spotilyrics.songIcon",
+        "onCommand:spotilyrics.songArtists"
     ],
     "main": "./out/extension.js",
     "repository": {
@@ -45,6 +48,21 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Mobile mode: black unplayed lines, white played lines."
+                },
+                "spotilyrics.songTitle": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Toggle the song title in the lyrics panel."
+                },
+                "spotilyrics.songIcon": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Toggle the song icon in the lyrics panel."
+                },
+                "spotilyrics.songArtists": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Toggle the song artists in the lyrics panel."
                 }
             }
         },
@@ -68,6 +86,18 @@
             {
                 "command": "spotilyrics.setPort",
                 "title": "Set Spotify OAuth Callback Port"
+            },
+            {
+                "command": "spotilyrics.songTitle",
+                "title": "Toggle Song Title"
+            },
+            {
+                "command": "spotilyrics.songIcon",
+                "title": "Toggle Song Icon"
+            },
+            {
+                "command": "spotilyrics.songArtists",
+                "title": "Toggle Song Artists"
             }
         ]
     },
