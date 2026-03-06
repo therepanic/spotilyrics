@@ -162,7 +162,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 `Mobile mode ${newValue ? 'enabled' : 'disabled'}`
             );
             if (panel && currentPlayingState) {
-                await updateLyrics();
+                await updateLyrics(context);
             }
         })
     );
@@ -217,6 +217,88 @@ export async function activate(context: vscode.ExtensionContext) {
             }
             await createServer(context);
             await printFrame(context);
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('spotilyrics.setHideSongTitle', async () => {
+            const config = vscode.workspace.getConfiguration('spotilyrics');
+            const input = await vscode.window.showQuickPick(['hide', 'show'], {
+                canPickMany: false,
+            });
+
+            if (!input) {
+                return;
+            }
+            const value = input == 'hide';
+            await config.update('hideSongTitle', value, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(
+                `Song title has been ${value ? 'hidden' : 'shown'}`
+            );
+        })
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('spotilyrics.setHideSongIcon', async () => {
+            const config = vscode.workspace.getConfiguration('spotilyrics');
+            const input = await vscode.window.showQuickPick(['hide', 'show'], {
+                canPickMany: false,
+            });
+
+            if (!input) {
+                return;
+            }
+            const value = input == 'hide';
+            await config.update('hideSongIcon', value, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(
+                `Song icon has been ${value ? 'hidden' : 'shown'}`
+            );
+        })
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('spotilyrics.setHideSongAuthor', async () => {
+            const config = vscode.workspace.getConfiguration('spotilyrics');
+            const input = await vscode.window.showQuickPick(['hide', 'show'], {
+                canPickMany: false,
+            });
+
+            if (!input) {
+                return;
+            }
+            const value = input == 'hide';
+            await config.update('hideSongAuthor', value, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(
+                `Song author has been ${value ? 'hidden' : 'shown'}`
+            );
+        })
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('spotilyrics.toggleHideSongTitle', async () => {
+            const config = vscode.workspace.getConfiguration('spotilyrics');
+            const value = !config.get('hideSongTitle');
+            await config.update('hideSongTitle', value, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(
+                `Song title has been ${value ? 'hidden' : 'shown'}`
+            );
+        })
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('spotilyrics.toggleHideSongIcon', async () => {
+            const config = vscode.workspace.getConfiguration('spotilyrics');
+            const value = !config.get('hideSongIcon');
+            await config.update('hideSongIcon', value, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(
+                `Song icon has been ${value ? 'hidden' : 'shown'}`
+            );
+        })
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('spotilyrics.toggleHideSongAuthor', async () => {
+            const config = vscode.workspace.getConfiguration('spotilyrics');
+            const value = !config.get('hideSongAuthor');
+            await config.update('hideSongAuthor', value, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage(
+                `Song author has been ${value ? 'hidden' : 'shown'}`
+            );
         })
     );
 }
@@ -365,7 +447,7 @@ async function pollSpotifyStat(context: vscode.ExtensionContext) {
                 authState.accessToken = response.access_token;
                 authState.expiresIn = expiresIn;
             }
-            await updateLyrics();
+            await updateLyrics(context);
         }
     } catch (err) {
         console.error(`pollSpotifyStat error: ${err}`);
@@ -373,7 +455,35 @@ async function pollSpotifyStat(context: vscode.ExtensionContext) {
     }
 }
 
-async function updateLyrics() {
+function updatePanelMeta(
+    context: vscode.ExtensionContext,
+    artistName: string,
+    trackName: string,
+    imageUrl: string
+) {
+    if (!panel) {
+        return;
+    }
+
+    const showTitle = !vscode.workspace.getConfiguration('spotilyrics').get('hideSongTitle');
+    const showAuthor = !vscode.workspace.getConfiguration('spotilyrics').get('hideSongAuthor');
+
+    if (!showTitle && !showAuthor) {
+        panel.title = 'Spotify Lyrics';
+    } else if (showTitle && !showAuthor) {
+        panel.title = trackName;
+    } else if (showAuthor && !showTitle) {
+        panel.title = artistName;
+    } else {
+        panel.title = `${artistName} - ${trackName}`;
+    }
+
+    panel.iconPath = vscode.workspace.getConfiguration('spotilyrics').get('hideSongIcon')
+        ? vscode.Uri.file(path.join(context.extensionPath, 'icon.png'))
+        : vscode.Uri.parse(imageUrl);
+}
+
+async function updateLyrics(context: vscode.ExtensionContext) {
     if (authState) {
         const mobileMode: boolean =
             vscode.workspace.getConfiguration('spotilyrics').get('mobileMode') ?? false;
@@ -389,19 +499,19 @@ async function updateLyrics() {
         }
         const trackName: string = currentlyPlayingResponse.item.name;
         const albumName: string = currentlyPlayingResponse.item.album.name;
-        const artistNames: string[] = [];
+        const artistNames: string[] = currentlyPlayingResponse.item.artists.map(
+            (artist) => artist.name
+        );
         const albumImages = currentlyPlayingResponse.item.album.images;
         const durationInMs: number = currentlyPlayingResponse.item.duration_ms;
         const durationInS: number = Math.floor(durationInMs / 1000);
 
-        if (panel) {
-            if (!vscode.workspace.getConfiguration('spotilyrics').get('hideSongTitle')) {
-                panel.title = trackName;
-            }
-            if (!vscode.workspace.getConfiguration('spotilyrics').get('hideSongIcon')) {
-                panel.iconPath = vscode.Uri.parse(albumImages[0].url);
-            }
-        }
+        updatePanelMeta(
+            context,
+            artistNames[0],
+            trackName,
+            albumImages[albumImages.length - 1].url
+        );
 
         for (const artist of currentlyPlayingResponse.item.artists) {
             artistNames.push(artist.name);
