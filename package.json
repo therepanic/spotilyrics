@@ -45,6 +45,21 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Mobile mode: black unplayed lines, white played lines."
+                },
+                "spotilyrics.hideSongTitle": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Don't show the song title in the panel title."
+                },
+                "spotilyrics.hideSongIcon": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Don't show the album icon on the panel card."
+                },
+                "spotilyrics.hideSongAuthor": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Don't show the song author in the panel title."
                 }
             }
         },
@@ -68,6 +83,38 @@
             {
                 "command": "spotilyrics.setPort",
                 "title": "Set Spotify OAuth Callback Port"
+            },
+            {
+                "command": "spotilyrics.setHideSongTitle",
+                "title": "Set Hide Song Title"
+            },
+            {
+                "command": "spotilyrics.setHideSongIcon",
+                "title": "Set Hide Song Icon"
+            },
+            {
+                "command": "spotilyrics.setHideSongAuthor",
+                "title": "Set Hide Song Author"
+            },
+            {
+                "command": "spotilyrics.toggleHideSongTitle",
+                "title": "Toggle Hide Song Title"
+            },
+            {
+                "command": "spotilyrics.toggleHideSongIcon",
+                "title": "Toggle Hide Song Icon"
+            },
+            {
+                "command": "spotilyrics.setHideSongAuthor",
+                "title": "Set Hide Song Author"
+            },
+            {
+                "command": "spotilyrics.toggleHideSongAuthor",
+                "title": "Toggle Hide Song Author"
+            },
+            {
+                "command": "spotilyrics.toggleHideSongAuthor",
+                "title": "Toggle Hide Song Author"
             }
         ]
     },
