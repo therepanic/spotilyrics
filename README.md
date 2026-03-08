@@ -82,5 +82,5 @@ Feel free to use, hack, and remix it – but no warranties 😉
 ---
 
 <div align="center">
-<sub>Made with ❤️ by therepanic. Code hard, vibe harder 🎧</sub>
+<sub>Made with ❤️ by therepanic. Your code has a soundtrack now.</sub>
 </div>
