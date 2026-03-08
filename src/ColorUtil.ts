@@ -160,7 +160,7 @@ const COLORS: string[] = [
     '#1c3a3a',
     '#37370e',
     '#083070',
-    '#401018'
+    '#401018',
 ];
 
 function hexToRgb(hex: string): [number, number, number] {
