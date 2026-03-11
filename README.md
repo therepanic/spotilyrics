@@ -21,6 +21,7 @@
 - 📌 **Live lyrics sync** with your Spotify playback.
 - 🎨 Lyrics colors auto-themed from album cover (via `colorthief`).
 - 🖥️ Smooth **side panel view** – code on the left, lyrics on the right.
+- 🖱️ **Click-to-seek** – click on any lyric line to jump to that moment in the track (like Spotify app).
 - 📱 **Mobile mode** – black unplayed lines, white played lines (like Spotify mobile app).
 - 🔑 Simple **one-time login** using your own Spotify Client ID.
 - 🚪 Quick logout command to reset session.

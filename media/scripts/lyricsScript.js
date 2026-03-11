@@ -1,3 +1,4 @@
+const vscode = acquireVsCodeApi();
 let lastLyricsHash = '';
 let lastPickId = null;
 let mobileMode = false;
@@ -70,6 +71,12 @@ function renderLyrics(lyrics, textColor) {
             div.className = 'line future';
             div.textContent = line.text || '♪';
             div.dataset.lyricsId = line.id;
+            div.addEventListener('click', () => {
+                vscode.postMessage({
+                    command: 'seekToPosition',
+                    timeMs: line.timeMs,
+                });
+            });
             box.appendChild(div);
         });
     }

@@ -8,7 +8,7 @@ export class SpotifyWebApi {
         const params = new URLSearchParams({
             response_type: 'code',
             client_id: clientId,
-            scope: 'user-read-currently-playing',
+            scope: 'user-read-currently-playing user-modify-playback-state',
             redirect_uri: `http://127.0.0.1:${port}/callback`,
             code_challenge: codeChallenge,
             code_challenge_method: 'S256',
@@ -73,5 +73,16 @@ export class SpotifyWebApi {
         }
 
         return (await response.json()) as SpotifyGetCurrentlyPlayingResponse;
+    }
+
+    static async seekToPosition(accessToken: string, position_ms: number) {
+        const params = new URLSearchParams();
+        params.append('position_ms', String(position_ms));
+        await fetch(`https://api.spotify.com/v1/me/player/seek?${params.toString()}`, {
+            method: 'PUT',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
     }
 }

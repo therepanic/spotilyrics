@@ -64,7 +64,13 @@ export async function activate(context: vscode.ExtensionContext) {
             await printFrame(context);
 
             panel.webview.onDidReceiveMessage(async (message) => {
-                if (message.command === 'signInClicked') {
+                console.log('Received message:', message);
+                if (message.command === 'seekToPosition') {
+                    const timeMs = message.timeMs;
+                    if (authState) {
+                        await SpotifyWebApi.seekToPosition(authState.accessToken, timeMs);
+                    }
+                } else if (message.command === 'signInClicked') {
                     const clientId = message.message;
 
                     const codeVerifier = generateCodeVerifier();
@@ -467,7 +473,11 @@ async function updateLyrics() {
 
                             const timeMs = minutes * 60 * 1000 + seconds * 1000 + hundredths * 10;
 
-                            synchronizedLyricsMap.set(timeMs, { id: id, text: text });
+                            synchronizedLyricsMap.set(timeMs, {
+                                id: id,
+                                text: text,
+                                timeMs: timeMs,
+                            });
                             id++;
                         }
                     }
@@ -497,6 +507,7 @@ async function updateLyrics() {
                         synchronizedLyricsStrs.push({
                             id: entry[1].id,
                             text: entry[1].text,
+                            timeMs: entry[0],
                             pick: -1,
                         });
                     }
