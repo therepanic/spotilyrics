@@ -13,6 +13,9 @@
 
 ---
 
+> [!WARNING]
+> Due to [Spotify API changes in February 2026](https://developer.spotify.com/documentation/web-api/tutorials/february-2026-migration-guide), **Spotify Premium is now required** to use this extension. Starting from February 11, 2026, Spotify requires Premium for app owners using Development Mode. Sorry for the inconvenience.
+
 ## ✨ Features
 
 - 📌 **Live lyrics sync** with your Spotify playback.
