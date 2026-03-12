@@ -28,11 +28,14 @@ window.addEventListener('message', (event) => {
     }
     if (command === 'addLyrics') {
         const lyricsHash = JSON.stringify(lyrics);
+        const isSynced = lyrics.length > 0 && typeof lyrics[0] !== 'string';
         if (lyricsHash !== lastLyricsHash) {
             renderLyrics(lyrics, textColor);
             lastLyricsHash = lyricsHash;
         }
-        pickLyrics(pick, textColor);
+        if (isSynced) {
+            pickLyrics(pick, textColor);
+        }
     } else if (command === 'clearLyrics') {
         clearLyrics();
     } else if (command === 'pickLyrics') {
@@ -53,7 +56,7 @@ function renderLyrics(lyrics, textColor) {
         box.appendChild(note);
         lyrics.forEach((text) => {
             const div = document.createElement('div');
-            div.className = 'line';
+            div.className = 'line current';
             div.style.opacity = '1';
             div.textContent = text;
             box.appendChild(div);
