@@ -32,9 +32,7 @@ window.addEventListener('message', (event) => {
             renderLyrics(lyrics, textColor);
             lastLyricsHash = lyricsHash;
         }
-        if (pick !== undefined && pick !== null) {
-            pickLyrics(pick, textColor);
-        }
+        pickLyrics(pick, textColor);
     } else if (command === 'clearLyrics') {
         clearLyrics();
     } else if (command === 'pickLyrics') {
@@ -95,20 +93,19 @@ function clearLyrics() {
 }
 
 function pickLyrics(id, textColor) {
-    if (id === lastPickId || id === null || id === undefined) {
+    if (id === lastPickId) {
         return;
     }
-    console.log(textColor);
     lastPickId = id;
-
     const lines = Array.from(document.querySelectorAll('.line'));
     if (!lines.length) {
         return;
     }
-
-    const pickedIndex = lines.findIndex((line) => line.dataset.lyricsId === String(id));
-    if (pickedIndex === -1) {
-        return;
+    let pickedIndex;
+    if (id === -1) {
+        pickedIndex = -1;
+    } else {
+        pickedIndex = lines.findIndex((line) => line.dataset.lyricsId === String(id));
     }
 
     lines.forEach((line, index) => {
@@ -140,6 +137,9 @@ function pickLyrics(id, textColor) {
             }
         }
     });
-
-    lines[pickedIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (pickedIndex === -1) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+        lines[pickedIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 }

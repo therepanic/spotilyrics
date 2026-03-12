@@ -533,16 +533,26 @@ async function updateLyrics() {
                 const value = currentPlayingState.synchronizedLyricsMap.floorEntry(
                     currentlyPlayingResponse.progress_ms
                 );
-                if (value && panel) {
+                if (panel) {
                     const mobileMode: boolean =
                         vscode.workspace.getConfiguration('spotilyrics').get('mobileMode') ?? false;
-                    panel.webview.postMessage({
-                        command: 'pickLyrics',
-                        pick: value[1].id,
-                        color: currentPlayingState.coverColor,
-                        textColor: '#' + currentPlayingState.textColor,
-                        mobileMode: mobileMode,
-                    });
+                    if (value) {
+                        panel.webview.postMessage({
+                            command: 'pickLyrics',
+                            pick: value[1].id,
+                            color: currentPlayingState.coverColor,
+                            textColor: '#' + currentPlayingState.textColor,
+                            mobileMode: mobileMode,
+                        });
+                    } else {
+                        panel.webview.postMessage({
+                            command: 'pickLyrics',
+                            pick: -1,
+                            color: currentPlayingState.coverColor,
+                            textColor: '#' + currentPlayingState.textColor,
+                            mobileMode: mobileMode,
+                        });
+                    }
                 }
             }
         }
