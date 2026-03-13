@@ -100,8 +100,9 @@ export async function activate(context: vscode.ExtensionContext) {
                 }
             });
             panel.onDidChangeViewState(async (e) => {
-                if (!e.webviewPanel.visible) {
-                    currentPlayingState = undefined;
+                if (e.webviewPanel.visible && authState) {
+                    await printFrame(context);
+                    await sendCurrentLyricsToPanel();
                 }
             });
             panel.onDidDispose((e) => {
@@ -473,25 +474,7 @@ async function updateLyrics(context: vscode.ExtensionContext) {
             );
             if (trackCache) {
                 currentPlayingState = trackCache;
-                if (panel) {
-                    if (!trackCache.synchronizedLyricsMap) {
-                        panel.webview.postMessage({
-                            command: 'addLyrics',
-                            lyrics: trackCache.plainLyricsStrs,
-                            color: trackCache.coverColor,
-                            textColor: '#' + trackCache.textColor,
-                            mobileMode: mobileMode,
-                        });
-                    } else if (trackCache.synchronizedLyricsMap) {
-                        panel.webview.postMessage({
-                            command: 'addLyrics',
-                            lyrics: trackCache.synchronizedLyricsStrs,
-                            color: trackCache.coverColor,
-                            textColor: '#' + trackCache.textColor,
-                            mobileMode: mobileMode,
-                        });
-                    }
-                }
+                postLyricsToPanel(trackCache, mobileMode);
             }
         }
         if (
@@ -551,37 +534,9 @@ async function updateLyrics(context: vscode.ExtensionContext) {
                     makeTrackKey(currentPlayingState.name, currentPlayingState.authors),
                     currentPlayingState
                 );
-                if (!currentPlayingState.synchronizedLyricsMap) {
-                    if (panel) {
-                        panel.webview.postMessage({
-                            command: 'addLyrics',
-                            lyrics: currentPlayingState.plainLyricsStrs,
-                            color: currentPlayingState.coverColor,
-                            textColor: '#' + currentPlayingState.textColor,
-                            mobileMode: mobileMode,
-                        });
-                    }
-                } else {
-                    const synchronizedLyricsStrs: object[] = [];
-                    for (const entry of currentPlayingState.synchronizedLyricsMap) {
-                        synchronizedLyricsStrs.push({
-                            id: entry[1].id,
-                            text: entry[1].text,
-                            timeMs: entry[0],
-                            pick: -1,
-                        });
-                    }
-                    currentPlayingState.synchronizedLyricsStrs = synchronizedLyricsStrs;
-                    if (panel) {
-                        panel.webview.postMessage({
-                            command: 'addLyrics',
-                            lyrics: currentPlayingState.synchronizedLyricsStrs,
-                            color: currentPlayingState.coverColor,
-                            textColor: '#' + currentPlayingState.textColor,
-                            mobileMode: mobileMode,
-                        });
-                    }
-                }
+                currentPlayingState.synchronizedLyricsStrs =
+                    buildSynchronizedLyricsStrs(currentPlayingState);
+                postLyricsToPanel(currentPlayingState, mobileMode);
             } else {
                 currentPlayingState = undefined;
                 if (panel) {
@@ -589,31 +544,105 @@ async function updateLyrics(context: vscode.ExtensionContext) {
                 }
             }
         } else {
-            if (currentPlayingState.synchronizedLyricsMap) {
+            if (currentPlayingState.synchronizedLyricsMap && panel) {
+                const mobileMode: boolean =
+                    vscode.workspace.getConfiguration('spotilyrics').get('mobileMode') ?? false;
                 const value = currentPlayingState.synchronizedLyricsMap.floorEntry(
                     currentlyPlayingResponse.progress_ms
                 );
-                if (panel) {
-                    const mobileMode: boolean =
-                        vscode.workspace.getConfiguration('spotilyrics').get('mobileMode') ?? false;
-                    if (value) {
-                        panel.webview.postMessage({
-                            command: 'pickLyrics',
-                            pick: value[1].id,
-                            color: currentPlayingState.coverColor,
-                            textColor: '#' + currentPlayingState.textColor,
-                            mobileMode: mobileMode,
-                        });
-                    } else {
-                        panel.webview.postMessage({
-                            command: 'pickLyrics',
-                            pick: -1,
-                            color: currentPlayingState.coverColor,
-                            textColor: '#' + currentPlayingState.textColor,
-                            mobileMode: mobileMode,
-                        });
-                    }
+                if (value) {
+                    panel.webview.postMessage({
+                        command: 'pickLyrics',
+                        pick: value[1].id,
+                        color: currentPlayingState.coverColor,
+                        textColor: '#' + currentPlayingState.textColor,
+                        mobileMode: mobileMode,
+                    });
+                } else {
+                    panel.webview.postMessage({
+                        command: 'pickLyrics',
+                        pick: -1,
+                        color: currentPlayingState.coverColor,
+                        textColor: '#' + currentPlayingState.textColor,
+                        mobileMode: mobileMode,
+                    });
                 }
+            }
+        }
+    }
+}
+
+function buildSynchronizedLyricsStrs(state: SpotifyCurrentPlayingState): object[] {
+    const synchronizedLyricsStrs: object[] = [];
+    if (state.synchronizedLyricsMap) {
+        for (const entry of state.synchronizedLyricsMap) {
+            synchronizedLyricsStrs.push({
+                id: entry[1].id,
+                text: entry[1].text,
+                timeMs: entry[0],
+                pick: -1,
+            });
+        }
+    }
+    return synchronizedLyricsStrs;
+}
+
+function postLyricsToPanel(state: SpotifyCurrentPlayingState, mobileMode: boolean) {
+    if (!panel) {
+        return;
+    }
+    if (!state.synchronizedLyricsMap) {
+        panel.webview.postMessage({
+            command: 'addLyrics',
+            lyrics: state.plainLyricsStrs,
+            color: state.coverColor,
+            textColor: '#' + state.textColor,
+            mobileMode: mobileMode,
+        });
+    } else {
+        panel.webview.postMessage({
+            command: 'addLyrics',
+            lyrics: state.synchronizedLyricsStrs,
+            color: state.coverColor,
+            textColor: '#' + state.textColor,
+            mobileMode: mobileMode,
+        });
+    }
+}
+
+async function sendCurrentLyricsToPanel() {
+    if (!panel || !currentPlayingState || !authState) {
+        return;
+    }
+    const mobileMode: boolean =
+        vscode.workspace.getConfiguration('spotilyrics').get('mobileMode') ?? false;
+
+    postLyricsToPanel(currentPlayingState, mobileMode);
+
+    if (currentPlayingState.synchronizedLyricsMap) {
+        const currentlyPlayingResponse = await SpotifyWebApi.getCurrentlyPlaying(
+            authState.accessToken
+        );
+        if (currentlyPlayingResponse) {
+            const value = currentPlayingState.synchronizedLyricsMap.floorEntry(
+                currentlyPlayingResponse.progress_ms
+            );
+            if (value) {
+                panel.webview.postMessage({
+                    command: 'pickLyrics',
+                    pick: value[1].id,
+                    color: currentPlayingState.coverColor,
+                    textColor: '#' + currentPlayingState.textColor,
+                    mobileMode: mobileMode,
+                });
+            } else {
+                panel.webview.postMessage({
+                    command: 'pickLyrics',
+                    pick: -1,
+                    color: currentPlayingState.coverColor,
+                    textColor: '#' + currentPlayingState.textColor,
+                    mobileMode: mobileMode,
+                });
             }
         }
     }
