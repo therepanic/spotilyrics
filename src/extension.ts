@@ -121,6 +121,8 @@ export async function activate(context: vscode.ExtensionContext) {
             if (panel) {
                 await createServer(context);
                 await printFrame(context);
+                panel.title = 'Spotify Lyrics';
+                panel.iconPath = vscode.Uri.file(path.join(context.extensionPath, 'icon.png'));
             }
         })
     );
