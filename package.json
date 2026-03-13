@@ -14,9 +14,9 @@
     "activationEvents": [
         "onCommand:spotilyrics.lyrics",
         "onCommand:spotilyrics.logout",
-        "onCommand:spotilyrics.setTracksCacheMaxSize",
-        "onCommand:spotilyrics.toggleMobileMode",
-        "onCommand:spotilyrics.setPort",
+        "onCommand:spotilyrics.tracksCacheMaxSize",
+        "onCommand:spotilyrics.port",
+        "onCommand:spotilyrics.mobileMode",
         "onCommand:spotilyrics.songTitle",
         "onCommand:spotilyrics.songIcon",
         "onCommand:spotilyrics.songArtists"
@@ -76,15 +76,15 @@
                 "title": "Logout from Spotilyrics"
             },
             {
-                "command": "spotilyrics.setTracksCacheMaxSize",
+                "command": "spotilyrics.tracksCacheMaxSize",
                 "title": "Set Tracks Cache Max Size"
             },
             {
-                "command": "spotilyrics.toggleMobileMode",
+                "command": "spotilyrics.mobileMode",
                 "title": "Toggle Mobile Mode"
             },
             {
-                "command": "spotilyrics.setPort",
+                "command": "spotilyrics.port",
                 "title": "Set Spotify OAuth Callback Port"
             },
             {

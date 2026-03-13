@@ -64,7 +64,6 @@ export async function activate(context: vscode.ExtensionContext) {
             await printFrame(context);
 
             panel.webview.onDidReceiveMessage(async (message) => {
-                console.log('Received message:', message);
                 if (message.command === 'seekToPosition') {
                     const timeMs = message.timeMs;
                     if (authState) {
@@ -125,7 +124,7 @@ export async function activate(context: vscode.ExtensionContext) {
         })
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('spotilyrics.setTracksCacheMaxSize', async () => {
+        vscode.commands.registerCommand('spotilyrics.tracksCacheMaxSize', async () => {
             const MIN = 1,
                 MAX = Number.MAX_SAFE_INTEGER,
                 DEFAULT = 10;
@@ -159,7 +158,7 @@ export async function activate(context: vscode.ExtensionContext) {
         })
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('spotilyrics.toggleMobileMode', async () => {
+        vscode.commands.registerCommand('spotilyrics.mobileMode', async () => {
             const config = vscode.workspace.getConfiguration('spotilyrics');
             const currentValue = config.get<boolean>('mobileMode') ?? false;
             const newValue = !currentValue;
@@ -173,7 +172,7 @@ export async function activate(context: vscode.ExtensionContext) {
         })
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('spotilyrics.setPort', async () => {
+        vscode.commands.registerCommand('spotilyrics.port', async () => {
             const MIN = 1024,
                 MAX = 65535,
                 DEFAULT = 8000;
