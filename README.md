@@ -13,6 +13,10 @@
 
 ---
 
+## <img src="demo.png"/>
+
+---
+
 > [!WARNING]
 > Due to [Spotify API changes in February 2026](https://developer.spotify.com/documentation/web-api/tutorials/february-2026-migration-guide), **Spotify Premium is now required** to use this extension. Starting from February 11, 2026, Spotify requires Premium for app owners using Development Mode. Sorry for the inconvenience.
 
@@ -28,10 +32,6 @@
 - ⚡ Set a **maximum tracks cache size** for lyrics syncing.
 
 ---
-
-## 📸 Demo
-
-## <img src="demo.png"/>
 
 ## ⚡️ Installation
 
@@ -84,7 +84,7 @@ Show Spotify Lyrics via Spotilyrics
 ## 📜 License
 
 This project is licensed as **Unlicensed**.  
-Feel free to use, hack, and remix it – but no warranties 😉
+Feel free to use, hack, and remix it.
 
 ---
 
