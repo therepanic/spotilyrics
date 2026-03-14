@@ -412,6 +412,13 @@ async function pollSpotifyStat(context: vscode.ExtensionContext) {
     }
 }
 
+function truncateTitle(title: string, maxLength: number = 40): string {
+    if (title.length <= maxLength) {
+        return title;
+    }
+    return title.substring(0, maxLength - 3) + '...';
+}
+
 function updatePanelMeta(
     context: vscode.ExtensionContext,
     artistsNames: string,
@@ -426,15 +433,18 @@ function updatePanelMeta(
     const songArtists = vscode.workspace.getConfiguration('spotilyrics').get('songArtists');
     const songIcon = vscode.workspace.getConfiguration('spotilyrics').get('songIcon');
 
+    let title: string;
     if (songTitle && songArtists) {
-        panel.title = 'Spotify Lyrics';
+        title = 'Spotify Lyrics';
     } else if (!songTitle && songArtists) {
-        panel.title = trackName;
+        title = trackName;
     } else if (songTitle && !songArtists) {
-        panel.title = artistsNames;
+        title = artistsNames;
     } else {
-        panel.title = `${artistsNames} - ${trackName}`;
+        title = `${artistsNames} - ${trackName}`;
     }
+
+    panel.title = truncateTitle(title);
 
     panel.iconPath = songIcon
         ? vscode.Uri.file(path.join(context.extensionPath, 'icon.png'))
