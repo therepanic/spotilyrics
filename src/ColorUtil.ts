@@ -200,6 +200,132 @@ function deltaE(l1: any, l2: any) {
     return Math.sqrt(dL * dL + da * da + db * db);
 }
 
+function rgbToHsl([r, g, b]: [number, number, number]): [number, number, number] {
+    const r1 = r / 255;
+    const g1 = g / 255;
+    const b1 = b / 255;
+    const max = Math.max(r1, g1, b1);
+    const min = Math.min(r1, g1, b1);
+    const l = (max + min) / 2;
+    const d = max - min;
+
+    if (d === 0) {
+        return [0, 0, l];
+    }
+
+    const s = d / (1 - Math.abs(2 * l - 1));
+    let h = 0;
+
+    switch (max) {
+        case r1:
+            h = ((g1 - b1) / d + (g1 < b1 ? 6 : 0)) / 6;
+            break;
+        case g1:
+            h = ((b1 - r1) / d + 2) / 6;
+            break;
+        default:
+            h = ((r1 - g1) / d + 4) / 6;
+            break;
+    }
+
+    return [h, s, l];
+}
+
+function circularHueDistance(h1: number, h2: number): number {
+    const diff = Math.abs(h1 - h2);
+    return Math.min(diff, 1 - diff);
+}
+
+function clamp(value: number, min: number, max: number): number {
+    return Math.max(min, Math.min(max, value));
+}
+
+type PaletteCandidate = {
+    rgb: [number, number, number];
+    lab: { L: number; a: number; b: number };
+    hsl: [number, number, number];
+    hsv: [number, number, number];
+    prominence: number;
+    chroma: number;
+};
+
+function makePaletteCandidate(rgb: [number, number, number], prominence: number): PaletteCandidate {
+    const lab = rgbToLab(rgb);
+    return {
+        rgb,
+        lab,
+        hsl: rgbToHsl(rgb),
+        hsv: rgbToHsv(rgb),
+        prominence,
+        chroma: Math.sqrt(lab.a * lab.a + lab.b * lab.b),
+    };
+}
+
+function dedupePalette(colors: [number, number, number][]): [number, number, number][] {
+    const deduped: [number, number, number][] = [];
+    for (const color of colors) {
+        const lab = rgbToLab(color);
+        const isDuplicate = deduped.some((existing) => deltaE(lab, rgbToLab(existing)) < 8);
+        if (!isDuplicate) {
+            deduped.push(color);
+        }
+    }
+    return deduped;
+}
+
+function pickAnchorColor(colors: [number, number, number][]): PaletteCandidate {
+    const prepared = dedupePalette(colors).map((rgb, index, arr) =>
+        makePaletteCandidate(rgb, arr.length <= 1 ? 1 : 1 - index / arr.length)
+    );
+
+    const vivid = prepared.filter((candidate) => {
+        const [, s, l] = candidate.hsl;
+        return candidate.chroma >= 18 && s >= 0.12 && l >= 0.06 && l <= 0.82;
+    });
+
+    const usable = vivid.length ? vivid : prepared;
+
+    const weightedHueX = usable.reduce(
+        (sum, candidate) => sum + Math.cos(candidate.hsl[0] * Math.PI * 2) * candidate.prominence,
+        0
+    );
+    const weightedHueY = usable.reduce(
+        (sum, candidate) => sum + Math.sin(candidate.hsl[0] * Math.PI * 2) * candidate.prominence,
+        0
+    );
+    const dominantHue =
+        weightedHueX === 0 && weightedHueY === 0
+            ? usable[0].hsl[0]
+            : (Math.atan2(weightedHueY, weightedHueX) / (Math.PI * 2) + 1) % 1;
+
+    const scored = usable.map((candidate) => {
+        const [, saturation, lightness] = candidate.hsl;
+        const [, , value] = candidate.hsv;
+        const normalizedDepth = 1 - clamp(lightness, 0, 1);
+        const darknessPreference = 1 - Math.abs(lightness - 0.28) / 0.28;
+        const hueCloseness = 1 - circularHueDistance(candidate.hsl[0], dominantHue) / 0.5;
+        const neutralPenalty = candidate.chroma < 24 ? (24 - candidate.chroma) / 24 : 0;
+        const washedPenalty = lightness > 0.72 ? (lightness - 0.72) / 0.28 : 0;
+        const crushedPenalty = value < 0.16 ? (0.16 - value) / 0.16 : 0;
+
+        const score =
+            candidate.prominence * 0.34 +
+            saturation * 0.24 +
+            clamp(candidate.chroma / 90, 0, 1) * 0.2 +
+            clamp(darknessPreference, 0, 1) * 0.14 +
+            clamp(normalizedDepth, 0, 1) * 0.08 +
+            clamp(hueCloseness, 0, 1) * 0.1 -
+            neutralPenalty * 0.18 -
+            washedPenalty * 0.12 -
+            crushedPenalty * 0.08;
+
+        return { candidate, score };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    return scored[0].candidate;
+}
+
 export async function getAccentColorFromUrl(
     imageUrl: string,
     targetLightness = 0,
@@ -276,28 +402,42 @@ export async function getAccentColorFromUrl(
             }
         }
 
-        const paletteLab = paletteRgb.map(rgbToLab);
+        const anchor = pickAnchorColor(paletteRgb);
         const candidates = COLORS.map((hex) => {
             const rgb = hexToRgb(hex);
             const lab = rgbToLab(rgb);
-            return { hex, lab, Lnorm: lab.L / 100 };
+            const hsl = rgbToHsl(rgb);
+            const chroma = Math.sqrt(lab.a * lab.a + lab.b * lab.b);
+            return { hex, lab, hsl, chroma, Lnorm: lab.L / 100 };
         });
 
-        const colorWeight = opts?.colorWeight ?? 0.8;
-        const lightnessWeight = opts?.lightnessWeight ?? 0.2;
+        const anchorLightness = clamp(anchor.hsl[2], 0, 1);
+        const effectiveTargetLightness =
+            targetLightness > 0 ? anchorLightness * 0.7 + targetLightness * 0.3 : anchorLightness;
+        const colorWeight = opts?.colorWeight ?? 0.52;
+        const lightnessWeight = opts?.lightnessWeight ?? 0.28;
 
         const scored = candidates.map((cand) => {
-            let minDE = Infinity;
-            for (const p of paletteLab) {
-                const de = deltaE(cand.lab, p);
-                if (de < minDE) {
-                    minDE = de;
-                }
-            }
-            const colorDistNorm = Math.min(1, minDE / 100);
-            const lightDiff = Math.abs(cand.Lnorm - targetLightness);
-            const score = colorWeight * colorDistNorm + lightnessWeight * lightDiff;
-            return { hex: cand.hex, score, minDE, lightDiff };
+            const de = deltaE(cand.lab, anchor.lab);
+            const colorDistNorm = Math.min(1, de / 100);
+            const hueDiff = circularHueDistance(cand.hsl[0], anchor.hsl[0]);
+            const huePenalty = hueDiff / 0.5;
+            const lightDiff = Math.abs(cand.hsl[2] - effectiveTargetLightness);
+            const chromaDiff = Math.abs(cand.chroma - anchor.chroma) / 100;
+            const tooBrightPenalty =
+                cand.hsl[2] > anchor.hsl[2] + 0.12 ? cand.hsl[2] - (anchor.hsl[2] + 0.12) : 0;
+            const tooMutedPenalty =
+                cand.chroma + 10 < anchor.chroma ? (anchor.chroma - (cand.chroma + 10)) / 100 : 0;
+
+            const score =
+                colorWeight * colorDistNorm +
+                0.32 * huePenalty +
+                lightnessWeight * lightDiff +
+                0.18 * chromaDiff +
+                0.35 * tooBrightPenalty +
+                0.22 * tooMutedPenalty;
+
+            return { hex: cand.hex, score };
         });
 
         scored.sort((a, b) => a.score - b.score);
@@ -393,8 +533,9 @@ export function generateTextColor(hexCover: string, hShiftDeg = 12, coeff = 0.81
     const rgbCover = hexToRgb(hexCover);
     const [h, s, v] = rgbToHsv(rgbCover);
     const newH = (h + hShiftDeg / 360) % 1;
-    const newS = clamp01(v * coeff);
-    const newV = 1;
+    const liftedS = Math.max(s * 0.7, 0.28);
+    const newS = clamp01(liftedS * coeff);
+    const newV = v < 0.38 ? 1 : 0.96;
     const rgbText = hsvToRgb([newH, newS, newV]);
     return rgbToHex(rgbText);
 }
