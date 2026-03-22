@@ -1,3 +1,35 @@
+
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="center">
+        <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=en">English</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=zh-TW">繁體中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=ja">日本語</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=ko">한국어</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=hi">हिन्दी</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=th">ไทย</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=fr">Français</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=de">Deutsch</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=es">Español</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=it">Italiano</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=ru">Русский</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=pt">Português</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=nl">Nederlands</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=pl">Polski</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=ar">العربية</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=fa">فارسی</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=tr">Türkçe</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=vi">Tiếng Việt</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=id">Bahasa Indonesia</a>
+        | <a href="https://openaitx.github.io/view.html?user=therepanic&project=spotilyrics&lang=as">অসমীয়া</
+      </div>
+    </div>
+  </details>
+</div>
+
 <div align="center">
   <br/>
   <img src="logo.png" width="350" alt="Spotilyrics logo"/>
