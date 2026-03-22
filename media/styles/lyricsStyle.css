@@ -30,6 +30,7 @@ body {
     font-family: 'CircularSpotifyText', sans-serif;
     margin: 0;
     padding: 0;
+    min-height: 100vh;
 }
 
 .placeholder {
@@ -78,7 +79,7 @@ body {
     margin-bottom: 35px;
     opacity: 0.7;
     transition:
-        opacity 0.3s ease,
+        opacity 0.18s ease,
         color 0.5s ease;
     cursor: default;
 }
@@ -109,4 +110,111 @@ body {
     text-decoration-color: #ffffff;
     text-underline-offset: 4px;
     cursor: pointer;
+}
+
+.sync-button {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%) translateY(14px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: none;
+    border-radius: 999px;
+    padding: 18px 32px;
+    background: rgba(255, 255, 255, 0.98);
+    color: #111111;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
+    font: inherit;
+    font-size: 20px;
+    font-weight: 700;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+        background 0.2s ease,
+        opacity 0.14s ease,
+        transform 0.18s ease;
+    z-index: 10;
+    cursor: pointer;
+}
+
+.sync-button:not([hidden]) {
+    display: inline-flex;
+}
+
+.sync-button.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.sync-button.visible:hover {
+    background: rgba(235, 235, 235, 0.98);
+    transform: translateX(-50%) translateY(0) scale(1.05);
+}
+
+.sync-button.visible:active {
+    background: rgba(210, 210, 210, 0.98);
+    transform: translateX(-50%) translateY(0) scale(1.02);
+}
+
+.sync-button:focus,
+.sync-button:focus-visible {
+    outline: none;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
+}
+
+.sync-button__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: 26px;
+    height: 26px;
+}
+
+.sync-button__icon span {
+    width: 3px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.95;
+}
+
+.sync-button__icon span:nth-child(1) {
+    height: 9px;
+}
+
+.sync-button__icon span:nth-child(2) {
+    height: 15px;
+}
+
+.sync-button__icon span:nth-child(3) {
+    height: 23px;
+}
+
+.sync-button__icon span:nth-child(4) {
+    height: 15px;
+}
+
+.sync-button__icon span:nth-child(5) {
+    height: 9px;
+}
+
+.sync-button__label {
+    display: block;
+    min-width: 0;
+    text-align: center;
+    font-size: 1.08em;
+    line-height: 1;
+    transform: translateY(2px);
+}
+
+@media (max-width: 1200px) {
+    .sync-button {
+        bottom: 18px;
+        padding: 15px 28px;
+        font-size: 17px;
+    }
 }
