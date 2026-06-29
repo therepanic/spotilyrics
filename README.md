@@ -15,8 +15,6 @@
 
 ## <img src="demo.png"/>
 
----
-
 > [!WARNING]
 > Due to [Spotify API changes in February 2026](https://developer.spotify.com/documentation/web-api/tutorials/february-2026-migration-guide), **Spotify Premium is now required** to use this extension. Starting from February 11, 2026, Spotify requires Premium for app owners using Development Mode. Sorry for the inconvenience.
 
@@ -31,8 +29,6 @@
 - 🚪 Quick logout command to reset session.
 - ⚡ Set a **maximum tracks cache size** for lyrics syncing.
 
----
-
 ## ⚡️ Installation
 
 1. Open **VS Code** → Extensions → search `spotilyrics` or [install from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=therepanic.spotilyrics).
@@ -42,8 +38,6 @@
 ```
 Show Spotify Lyrics via Spotilyrics
 ```
-
----
 
 ## 🔑 Authentication (one-time setup)
 
@@ -57,8 +51,6 @@ Show Spotify Lyrics via Spotilyrics
 
 > ℹ️ Why? – To respect Spotify API rate limits, you need your own ID.
 
----
-
 ## ⌨️ Commands
 
 - `Show Spotify Lyrics via Spotilyrics` (`spotilyrics.lyrics`) – open synced lyrics panel.
@@ -70,16 +62,12 @@ Show Spotify Lyrics via Spotilyrics
 - `Toggle Song Icon` (`spotilyrics.songIcon`) – toggle the song icon in the lyrics panel.
 - `Toggle Song Artists` (`spotilyrics.songArtists`) – toggle the song artists in the lyrics panel.
 
----
-
 ## ⚙️ Tech stack
 
 - [Spotify Web API](https://developer.spotify.com/documentation/web-api/)
 - [LRClib](https://lrclib.net/) for lyrics with timing
 - [colorthief](https://lokeshdhakar.com/projects/color-thief/) for cover-based theme
 - TypeScript + VS Code WebView
-
----
 
 ## 📜 License
 
